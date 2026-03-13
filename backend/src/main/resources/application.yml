@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: car-rental
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=car_rental;encrypt=false;trustServerCertificate=true
+    username: sa
+    password: Sql@123456
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    out-of-order: true
