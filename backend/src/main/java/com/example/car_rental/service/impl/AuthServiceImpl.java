@@ -48,18 +48,16 @@ public class AuthServiceImpl implements AuthenticationService {
     @Override
     public TokenResponse authenticate(LoginRequest request) {
         log.info("Starting Authenticate");
-//        User user = userService.findByEmail(request.getEmail());
-        Authentication user = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        String accessToken = jwtService.generateToken((UserDetails)user.getPrincipal());
-        String refreshToken = jwtService.generateRefreshToken((UserDetails) user.getPrincipal());
+        User user = userService.findByEmail(request.getEmail());
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
         log.info("Ending Authenticate");
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .role(user.getAuthorities().stream()
-                        .findFirst()
-                        .map(GrantedAuthority::getAuthority)
-                        .orElse(null))
+                .avatar(user.getAvatar())
+                .role(user.getRole())
                 .build();
     }
 

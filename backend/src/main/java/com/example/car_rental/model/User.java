@@ -96,6 +96,10 @@ public class User implements UserDetails{
     @OneToMany(mappedBy = "ownerUser")
     private Set<Vehicle> vehicles = new LinkedHashSet<>();
 
+    @Size(max = 255)
+    @Column(name = "avatar")
+    private String avatar;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Set.of(new SimpleGrantedAuthority("ROLE_" + role));

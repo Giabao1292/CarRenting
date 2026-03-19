@@ -4,7 +4,7 @@ export const APP_ROUTES = {
   CAR_DETAILS: "/car-details",
   PAYMENT: "/payment",
   BOOKING_SUCCESS: "/booking-success",
-  RENTER_DASHBOARD: "/dashboard/renter",
+  PROFILE: "/profile",
   OWNER_DASHBOARD: "/dashboard/owner",
   ADMIN_DASHBOARD: "/dashboard/admin",
   PROFILE_VERIFICATION: "/profile/verification",

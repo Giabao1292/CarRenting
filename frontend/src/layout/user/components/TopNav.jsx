@@ -1,0 +1,147 @@
+import { useEffect, useRef, useState } from "react";
+import { Button, Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { APP_ROUTES } from "../../../app/routes";
+import AuthModal from "../../../components/auth/AuthModal";
+import { useAuth } from "../../../context/AuthContext";
+
+const TopNav = () => {
+  const { authUser, isLoggedIn, loginUser, defaultAvatar } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [authModalTopOffset, setAuthModalTopOffset] = useState(90);
+  const navRef = useRef(null);
+
+  const openModal = (mode) => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLoginSuccess = (loggedUser) => {
+    loginUser(loggedUser);
+  };
+
+  useEffect(() => {
+    const updateModalOffset = () => {
+      if (!navRef.current) return;
+      const nextOffset = navRef.current.getBoundingClientRect().height;
+      setAuthModalTopOffset(Math.round(nextOffset));
+    };
+
+    updateModalOffset();
+    window.addEventListener("resize", updateModalOffset);
+
+    return () => {
+      window.removeEventListener("resize", updateModalOffset);
+    };
+  }, []);
+
+  return (
+    <>
+      <Navbar
+        ref={navRef}
+        className="bg-white border-bottom p-3 mioto-topnav"
+        sticky="top"
+      >
+        <Container fluid="xl" className="justify-content-between gap-3">
+          <div className="d-flex align-items-center gap-3">
+            <Link
+              to={APP_ROUTES.HOME}
+              className="d-flex align-items-center gap-2 text-decoration-none text-body"
+            >
+              <span className="mioto-brand-mark" aria-hidden="true" />
+              <Navbar.Brand className="mb-0 mioto-brand-text">
+                YIOTO
+              </Navbar.Brand>
+            </Link>
+          </div>
+
+          <div className="d-flex align-items-center gap-3">
+            <Nav className="d-none d-lg-flex gap-3 mioto-nav-links border-end pe-3">
+              <Nav.Link as={Link} to={APP_ROUTES.HOME} className="text-dark">
+                Về YIOTO
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to={APP_ROUTES.OWNER_DASHBOARD}
+                className="text-dark"
+              >
+                Trở thành chủ xe
+              </Nav.Link>
+              <Nav.Link as={Link} to={APP_ROUTES.PROFILE} className="text-dark">
+                Chuyến của tôi
+              </Nav.Link>
+            </Nav>
+
+            {!isLoggedIn ? (
+              <>
+                <Button
+                  variant="success"
+                  className="px-3"
+                  onClick={() => openModal("login")}
+                >
+                  Đăng nhập
+                </Button>
+                <Button
+                  variant="light"
+                  className="border-black px-4"
+                  onClick={() => openModal("register")}
+                >
+                  Đăng ký
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="link" className="mioto-icon-btn p-0">
+                  <span className="material-symbols-outlined">
+                    notifications
+                  </span>
+                </Button>
+                <Button variant="link" className="mioto-icon-btn p-0">
+                  <span className="material-symbols-outlined">chat</span>
+                </Button>
+
+                <NavDropdown
+                  title={
+                    <span className="d-inline-flex align-items-center gap-2 text-dark mioto-user-label small">
+                      <img
+                        src={authUser?.avatar || defaultAvatar}
+                        alt="Profile"
+                        width={32}
+                        height={32}
+                        className="rounded-circle object-fit-cover border"
+                        onError={(event) => {
+                          event.currentTarget.src = defaultAvatar;
+                        }}
+                      />
+                      {authUser?.email || "Người dùng"}
+                    </span>
+                  }
+                  align="end"
+                  id="profile-dropdown"
+                  className="mioto-user-dropdown"
+                >
+                  <NavDropdown.Item>Hồ sơ</NavDropdown.Item>
+                  <NavDropdown.Item>Cài đặt tài khoản</NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item>Đăng xuất</NavDropdown.Item>
+                </NavDropdown>
+              </>
+            )}
+          </div>
+        </Container>
+      </Navbar>
+
+      <AuthModal
+        show={isAuthModalOpen}
+        mode={authMode}
+        onHide={() => setIsAuthModalOpen(false)}
+        onChangeMode={setAuthMode}
+        topOffset={authModalTopOffset}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    </>
+  );
+};
+
+export default TopNav;

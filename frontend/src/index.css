@@ -72,6 +72,296 @@ a {
   color: #94a3b8;
 }
 
+.mioto-topnav .navbar-brand {
+  letter-spacing: 0.2px;
+}
+
+.mioto-brand-mark {
+  width: 30px;
+  height: 20px;
+  border: 3px solid #58d68d;
+  border-radius: 6px;
+  border-right-width: 3px;
+  display: inline-block;
+  transform: skewX(-14deg);
+  position: relative;
+}
+
+.mioto-brand-mark::after {
+  content: "";
+  position: absolute;
+  right: -14px;
+  top: -3px;
+  width: 30px;
+  height: 20px;
+  border: 3px solid #58d68d;
+  border-radius: 6px;
+  transform: skewX(0deg);
+}
+
+.mioto-brand-text {
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.mioto-nav-links .nav-link {
+  font-size: 0.95rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: 500;
+}
+
+.mioto-user-label {
+  font-weight: 500;
+}
+
+.mioto-icon-btn {
+  color: #1f2937;
+  min-height: 32px;
+}
+
+.mioto-icon-btn:hover {
+  color: #111813;
+}
+
+.mioto-user-dropdown .dropdown-toggle::after {
+  margin-left: 0.5rem;
+}
+
+.auth-modal-dialog {
+  max-width: 430px;
+  margin-top: var(--auth-modal-top, 90px);
+  margin-bottom: 0;
+}
+
+.auth-modal-shell {
+  display: block !important;
+}
+
+.auth-modal-shell .modal-dialog {
+  transform: none !important;
+}
+
+.auth-modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(17, 24, 39, 0.22);
+  position: relative;
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111813;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.auth-modal-close .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.auth-modal-title {
+  font-size: 2.05rem;
+  text-align: center;
+  font-weight: 800;
+  margin-bottom: 1.1rem;
+  color: #161616;
+}
+
+.auth-label {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.auth-eye-btn {
+  border: 1px solid #d1d5db;
+  border-left: 0;
+  color: #6b7280;
+}
+
+.auth-eye-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.auth-link-btn {
+  background: transparent;
+  border: none;
+  color: #58cf8d;
+  font-weight: 700;
+  padding: 0;
+}
+
+.auth-link-btn:hover {
+  color: #3db974;
+}
+
+.auth-submit-btn {
+  min-height: 52px;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0.4rem 0 0.65rem;
+}
+
+.auth-switch-text {
+  text-align: center;
+  font-size: 1.02rem;
+  color: #374151;
+  margin-bottom: 0.8rem;
+}
+
+.auth-social-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.auth-social-btn {
+  min-height: 42px;
+  border: 1px solid #79dca6;
+  border-radius: 9px;
+  background: #ffffff;
+  font-weight: 700;
+  color: #1f2937;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.auth-social-facebook,
+.auth-social-google {
+  font-size: 1.15rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.auth-social-facebook {
+  color: #2563eb;
+}
+
+.auth-social-google {
+  color: #ea4335;
+}
+
+.mioto-hero-section {
+  min-height: 600px;
+}
+
+.mioto-hero-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0.35) 40%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
+
+.mioto-hero-title {
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 1.15;
+  max-width: 840px;
+  text-wrap: balance;
+}
+
+.mioto-hero-divider {
+  width: min(320px, 55%);
+  height: 2px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.mioto-hero-subtitle {
+  font-size: clamp(1rem, 1.6vw, 1.95rem);
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 940px;
+}
+
+.mioto-hero-subtitle span {
+  color: #5be19d;
+  font-weight: 700;
+}
+
+.mioto-booking-panel {
+  width: min(930px, 92%);
+  margin-top: 1rem;
+  border-radius: 18px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.mioto-booking-tabs {
+  width: fit-content;
+  margin: 0 auto;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+
+.mioto-booking-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.9rem 1.35rem;
+}
+
+.mioto-booking-tab .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.mioto-booking-tab.active {
+  background: #5ecf8e;
+  color: #ffffff;
+}
+
+.mioto-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.4rem;
+}
+
+.mioto-field-label .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.mioto-field-input {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 42px;
+  padding-left: 0;
+}
+
+.mioto-field-input:focus {
+  box-shadow: none;
+  border-bottom-color: #5ecf8e;
+}
+
+.mioto-search-btn {
+  min-height: 54px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
 .btn-primary-custom {
   background: var(--primary);
   color: var(--text-main);
@@ -136,6 +426,34 @@ a {
 @media (max-width: 991.98px) {
   .dashboard-sidebar-card {
     position: static !important;
+  }
+
+  .mioto-topnav .container-xl {
+    gap: 0.75rem !important;
+  }
+
+  .mioto-brand-text {
+    font-size: 1.55rem;
+  }
+
+  .mioto-hero-section {
+    min-height: 520px;
+  }
+
+  .mioto-booking-tabs {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .mioto-booking-tab {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.82rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .mioto-hero-subtitle {
+    font-size: 1.15rem;
   }
 }
 
