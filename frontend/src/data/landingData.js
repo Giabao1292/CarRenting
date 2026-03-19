@@ -1,5 +1,6 @@
-export const heroBg =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuApRKLhLE2vQHS7mhWSzlvc5Tve43fdMP8gVU2E0xrviZArK2gjIPocXGMJai5jwg6jMwj2WImnvXR_cJwFp_9iMZABt6idj9pfnb38tbFjbxo_yRnGeXLNLAwoQ38oaCMgssEP1ouHgkBWtUo1givnW7Wt5l0ELespPTBI2mQEt3TmilJeZGWL1CTSxYDt6Jq43yP_kSEt-b4Rj4YcN8PSRfw4RrTkoIK9vWo8NtH3jmPoX4PNYlxzidHzz8oa_mOfHGQi1_o7fFI";
+import heroBgImage from "../assets/background/bg-landingpage-1.png";
+
+export const heroBg = heroBgImage;
 
 export const featuredCars = [
   {

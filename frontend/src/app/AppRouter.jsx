@@ -1,24 +1,26 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import AppLayout from "./AppLayout";
 import ErrorBoundary from "./ErrorBoundary";
 import { APP_ROUTES } from "./routes";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
-import BookingSuccessPage from "../pages/BookingSuccessPage";
-import CarDetailsPage from "../pages/CarDetailsPage";
-import DashboardPage from "../pages/DashboardPage";
-import LandingPage from "../pages/LandingPage";
-import NotFoundPage from "../pages/NotFoundPage";
-import OwnerDashboardPage from "../pages/OwnerDashboardPage";
-import PaymentPage from "../pages/PaymentPage";
-import ProfileVerificationPage from "../pages/ProfileVerificationPage";
-import ResultsPage from "../pages/ResultsPage";
+import AdminLayout from "../layout/admin/AdminLayout";
+import OwnerLayout from "../layout/owner/OwnerLayout";
+import UserLayout from "../layout/user/UserLayout";
+import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
+import BookingSuccessPage from "../pages/user/BookingSuccessPage";
+import CarDetailsPage from "../pages/user/CarDetailsPage";
+import ProfileLayout from "../layout/profile/ProfileLayout";
+import LandingPage from "../pages/user/LandingPage";
+import NotFoundPage from "../pages/common/NotFoundPage";
+import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
+import PaymentPage from "../pages/user/PaymentPage";
+import ProfileVerificationPage from "../pages/user/ProfileVerificationPage";
+import ResultsPage from "../pages/user/ResultsPage";
 
 const AppRouter = () => {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route element={<AppLayout />}>
+          <Route element={<UserLayout />}>
             <Route path={APP_ROUTES.HOME} element={<LandingPage />} />
             <Route path={APP_ROUTES.RESULTS} element={<ResultsPage />} />
             <Route path={APP_ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
@@ -27,23 +29,26 @@ const AppRouter = () => {
               path={APP_ROUTES.BOOKING_SUCCESS}
               element={<BookingSuccessPage />}
             />
-            <Route
-              path={APP_ROUTES.RENTER_DASHBOARD}
-              element={<DashboardPage />}
-            />
-            <Route
-              path={APP_ROUTES.OWNER_DASHBOARD}
-              element={<OwnerDashboardPage />}
-            />
-            <Route
-              path={APP_ROUTES.ADMIN_DASHBOARD}
-              element={<AdminDashboardPage />}
-            />
+            <Route path={APP_ROUTES.PROFILE} element={<ProfileLayout />} />
             <Route
               path={APP_ROUTES.PROFILE_VERIFICATION}
               element={<ProfileVerificationPage />}
             />
             <Route path="*" element={<NotFoundPage />} />
+          </Route>
+
+          <Route element={<OwnerLayout />}>
+            <Route
+              path={APP_ROUTES.OWNER_DASHBOARD}
+              element={<OwnerDashboardPage />}
+            />
+          </Route>
+
+          <Route element={<AdminLayout />}>
+            <Route
+              path={APP_ROUTES.ADMIN_DASHBOARD}
+              element={<AdminDashboardPage />}
+            />
           </Route>
         </Routes>
       </BrowserRouter>

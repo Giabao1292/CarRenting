@@ -58,12 +58,6 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Lỗi tài nguyên", ex.getMessage(), request);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadCredentials(BadCredentialsException ex, WebRequest request) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Thông tin đăng nhập không hợp lệ", "Mật khẩu không chính xác", request);
-    }
-
     @ExceptionHandler(JwtException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleJwtException(JwtException ex, WebRequest request) {
@@ -79,13 +73,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleAuthenticationFailure(AuthenticationException ex, WebRequest request) {
+
         String message = switch (ex.getClass().getSimpleName()) {
-            case "DisabledException"         -> "Tài khoản đã bị vô hiệu hoá";
-            case "LockedException"           -> "Tài khoản đã bị khoá";
-            case "AccountExpiredException"   -> "Tài khoản đã hết hạn";
-            case "CredentialsExpiredException" -> "Thông tin xác thực đã hết hạn";
-            default                          -> "Không tìm thấy người dùng";
+            case "DisabledException" -> "Tài khoản chưa được xác thực (vui lòng kiểm tra email)";
+            case "LockedException" -> "Tài khoản đã bị khoá";
+            case "AccountExpiredException" -> "Tài khoản đã hết hạn";
+            case "CredentialsExpiredException" -> "Thông tin đăng nhập đã hết hạn";
+            case "BadCredentialsException" -> "Email hoặc mật khẩu không đúng";
+            case "UsernameNotFoundException" -> "Không tìm thấy người dùng";
+            default -> "Xác thực thất bại";
         };
+
         return buildErrorResponse(HttpStatus.FORBIDDEN, "Lỗi xác thực", message, request);
     }
 
