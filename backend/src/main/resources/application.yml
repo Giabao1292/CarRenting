@@ -10,3 +10,22 @@ spring:
     enabled: true
     locations: classpath:db/migration
     out-of-order: true
+  mail:
+    from: ${MAIL_USERNAME}
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+jwt:
+  limit:
+    day: 15
+    hour: 1
+  secretKey: iEKeAbUUiOb/waueS/nKrEV4aAEtrO5LZoVq+8fk8XHgXFmMUT70euKykS3JI0yzOAelB167lBKavBiQIRf9UQ==
+  refreshKey: 6m08koVwpxvdnLpSRDdLOcLjL+xAgbCgMQ9dX09E1sZMIvW0oDqpTlqgICvxDAcg1y8N1Q4M2QT0Pxux7Lu4Pw==
