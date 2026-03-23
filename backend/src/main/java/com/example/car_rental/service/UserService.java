@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 public interface UserService {
     public User findByEmail(String username);
 
+
     Page<AdminCustomerResponse> getAllCustomers(String keyword, int page, int size);
 
     void blockCustomer(Integer id);
@@ -15,4 +16,7 @@ public interface UserService {
     void unlockCustomer(Integer id);
 
     UserReportResponse getUserReport();
+
+    public void saveAvatar(String avatarUrl, String email);
+
 }

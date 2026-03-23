@@ -1,11 +1,10 @@
 package com.example.car_rental.repository;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.car_rental.model.User;
+
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-
-    Optional<User> findUserByEmail(@Size(max = 255) @NotNull String email);
 
     @Query("""
         SELECT u
@@ -41,4 +38,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     // Inactive
     long countByIsDeletedTrueOrVerifiedFalse();
     long countByRoleAndIsDeletedTrueOrVerifiedFalse(String role);
+    Optional<User> findUserByEmail(String email);
+
+
 }

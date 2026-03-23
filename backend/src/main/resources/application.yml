@@ -26,6 +26,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: true
+
+
 jwt:
   limit:
     day: 15
@@ -36,3 +39,11 @@ cloudinary:
   cloud-name: dejiclsce
   api-key: 521862237379554
   api-secret: zL1J83JXhXBDf2qg3NmtOE8caU4
+logging:
+  level:
+    org:
+        hibernate:
+          SQL: debug
+          orm:
+            jdbc:
+              bind: TRACE

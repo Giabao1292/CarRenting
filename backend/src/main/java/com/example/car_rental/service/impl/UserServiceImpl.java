@@ -1,5 +1,6 @@
 package com.example.car_rental.service.impl;
 
+import com.example.car_rental.exception.ResourceNotFoundException;
 import com.example.car_rental.model.User;
 import com.example.car_rental.repository.UserRepository;
 import com.example.car_rental.service.UserService;
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         return userRepository.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Wrong username or password"));
     }
+
     @Override
     public Page<AdminCustomerResponse> getAllCustomers(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -110,5 +112,14 @@ public class UserServiceImpl implements UserService {
                 .inactiveOwners(inactiveOwners)
                 .build();
     }
+
+
+    @Override
+    public void saveAvatar(String avatarUrl, String email) {
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + email));
+        user.setAvatar(avatarUrl);
+        userRepository.save(user);
+    }
+
 }
 
