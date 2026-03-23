@@ -1,0 +1,33 @@
+package com.example.car_rental.repository;
+
+import com.example.car_rental.model.Promotion;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
+    @Query("""
+            SELECT p FROM Promotion p
+            WHERE p.startAt  <= :now
+            AND   p.endAt    >= :now
+            AND  (p.usageLimit IS NULL OR p.usageLimit > 0)
+            AND  (:username IS NULL OR NOT EXISTS (
+                    SELECT COUNT(bp) FROM BookingPromotion bp
+                    JOIN bp.booking b
+                    WHERE bp.promotion.id = p.id
+                    AND   b.user.email    = :username
+                ))
+            ORDER BY
+                CASE WHEN p.discountType = 'percent' THEN p.discountValue ELSE 0 END DESC,
+                p.discountValue DESC
+            LIMIT 1
+            """)
+    Optional<Promotion> findBestPromotion(
+            @Param("username") String username,
+            @Param("now") LocalDateTime now
+    );
+}
