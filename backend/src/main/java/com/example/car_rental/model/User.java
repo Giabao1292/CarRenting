@@ -100,6 +100,9 @@ public class User implements UserDetails{
     @Column(name = "avatar")
     private String avatar;
 
+    @OneToOne(mappedBy = "user")
+    private OwnerProfile ownerProfile;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Set.of(new SimpleGrantedAuthority("ROLE_" + role));

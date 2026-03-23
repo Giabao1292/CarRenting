@@ -5,11 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -67,12 +70,12 @@ public class Vehicle {
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @NotNull
     @ColumnDefault("0")
@@ -86,9 +89,33 @@ public class Vehicle {
     private Set<BookingItem> bookingItems = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "vehicle")
+    @BatchSize(size = 20)
     private Set<Review> reviews = new LinkedHashSet<>();
 
     @ManyToMany
+    @JoinTable(
+            name = "vehicle_feature_map",
+            joinColumns = @JoinColumn(name = "vehicle_id"),
+            inverseJoinColumns = @JoinColumn(name = "feature_id")
+    )
     private Set<VehicleFeature> vehicleFeatures = new LinkedHashSet<>();
+
+    @Column(name = "price_per_day", precision = 12, scale = 2)
+    private BigDecimal pricePerDay;
+
+    @Size(max = 20)
+    @NotNull
+    @ColumnDefault("'automatic'")
+    @Column(name = "transmission", nullable = false, length = 20)
+    private String transmission;
+
+    @OneToMany(mappedBy = "vehicle")
+    @BatchSize(size = 20)
+    private Set<VehicleImage> vehicleImages = new LinkedHashSet<>();
+
+    @NotNull
+    @ColumnDefault("0.0")
+    @Column(name = "avg_rating", nullable = false, precision = 3, scale = 2)
+    private BigDecimal avgRating;
 
 }
