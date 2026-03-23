@@ -9,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -37,21 +38,18 @@ public class Promotion {
     private BigDecimal discountValue;
 
     @Column(name = "start_at")
-    private Instant startAt;
+    private LocalDateTime startAt;
 
     @Column(name = "end_at")
-    private Instant endAt;
+    private LocalDateTime endAt;
 
     @Column(name = "usage_limit")
     private Integer usageLimit;
 
-    @Column(name = "min_order_amount", precision = 12, scale = 2)
-    private BigDecimal minOrderAmount;
-
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "promotion")
     private Set<BookingPromotion> bookingPromotions = new LinkedHashSet<>();
