@@ -1,0 +1,1 @@
+ALTER TABLE vehicles ADD avg_rating DECIMAL(3,2) NOT NULL DEFAULT 0.0;
