@@ -1,5 +1,6 @@
 package com.example.car_rental.service.impl;
 
+import com.example.car_rental.dto.response.AdminUserDashboardResponse;
 import com.example.car_rental.exception.ResourceNotFoundException;
 import com.example.car_rental.model.User;
 import com.example.car_rental.repository.UserRepository;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import com.example.car_rental.dto.response.UserReportResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -120,6 +122,27 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(avatarUrl);
         userRepository.save(user);
     }
+    @Override
+    public AdminUserDashboardResponse getUserDashboard() {
+        List<Object[]> results = userRepository.getUserDashboard();
 
+        if (results == null || results.isEmpty()) {
+            return AdminUserDashboardResponse.builder()
+                    .totalUsers(0)
+                    .activeUsers(0)
+                    .blockedUsers(0)
+                    .verifiedUsers(0)
+                    .build();
+        }
+
+        Object[] row = results.get(0);
+
+        return AdminUserDashboardResponse.builder()
+                .totalUsers(((Number) row[0]).longValue())
+                .activeUsers(((Number) row[1]).longValue())
+                .blockedUsers(((Number) row[2]).longValue())
+                .verifiedUsers(((Number) row[3]).longValue())
+                .build();
+    }
 }
 

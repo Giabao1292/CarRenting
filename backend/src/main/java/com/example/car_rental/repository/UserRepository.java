@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,5 +42,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long countByRoleAndIsDeletedTrueOrVerifiedFalse(String role);
     Optional<User> findUserByEmail(String email);
 
-
+    @Query(value = """
+    SELECT
+        COUNT(*) AS total_users,
+        COUNT(CASE WHEN is_deleted = 0 THEN 1 END) AS active_users,
+        COUNT(CASE WHEN is_deleted = 1 THEN 1 END) AS blocked_users,
+        COUNT(CASE WHEN verified = 1 THEN 1 END) AS verified_users
+    FROM users
+    """, nativeQuery = true)
+    List<Object[]> getUserDashboard();
 }
