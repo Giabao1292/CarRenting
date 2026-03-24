@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=car_rental;encrypt=false;trustServerCertificate=true
     username: sa
-    password: Sql@123456
+    password: Abc@12345
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   flyway:
     enabled: true
