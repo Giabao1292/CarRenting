@@ -8,6 +8,7 @@ import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import BookingManagementPage from "../pages/admin/BookingManagementPage";
 import BookingSuccessPage from "../pages/user/BookingSuccessPage";
 import CarDetailsPage from "../pages/user/CarDetailsPage";
+import OwnerRegistrationPage from "../pages/user/OwnerRegistrationPage";
 import ProfileLayout from "../layout/profile/ProfileLayout";
 import LandingPage from "../pages/user/LandingPage";
 import NotFoundPage from "../pages/common/NotFoundPage";
@@ -37,6 +38,10 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.PROFILE_VERIFICATION}
               element={<ProfileVerificationPage />}
+            />
+            <Route
+              path={APP_ROUTES.OWNER_REGISTER}
+              element={<OwnerRegistrationPage />}
             />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
