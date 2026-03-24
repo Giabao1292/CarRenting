@@ -2,6 +2,7 @@ export const APP_ROUTES = {
   HOME: "/",
   RESULTS: "/results",
   CAR_DETAILS: "/car-details/:id",
+  OWNER_REGISTER: "/owner/register",
   PAYMENT: "/payment",
   BOOKING_SUCCESS: "/booking-success",
   PROFILE: "/profile",

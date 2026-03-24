@@ -78,7 +78,7 @@ const TopNav = () => {
               </Nav.Link>
               <Nav.Link
                 as={Link}
-                to={APP_ROUTES.OWNER_DASHBOARD}
+                to={APP_ROUTES.OWNER_REGISTER}
                 className="text-dark"
               >
                 Trở thành chủ xe

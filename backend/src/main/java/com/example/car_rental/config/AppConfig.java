@@ -44,7 +44,7 @@ import java.time.Duration;
 @EnableMethodSecurity
 public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
 
-    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/**", "/api/promotions/**"};
+    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/**", "/api/promotions/**", "/api/owners/**", "/api/reviews/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;

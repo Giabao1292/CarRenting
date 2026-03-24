@@ -120,6 +120,7 @@ const ResultsPage = () => {
   const [draftFilterValue, setDraftFilterValue] = useState("");
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [areaOptionsFromApi, setAreaOptionsFromApi] = useState([]);
+  const [locationErrorMessage, setLocationErrorMessage] = useState("");
 
   const [searchForm, setSearchForm] = useState(() => {
     const savedLocation = getSearchLocation();
@@ -398,6 +399,67 @@ const ResultsPage = () => {
     setSearchForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const applyLocationSelection = (locationLabel, city, source = "manual") => {
+    const normalizedCity = normalizeCityName(
+      city || extractCityFromLocation(locationLabel),
+    );
+
+    setSearchForm((prev) => ({
+      ...prev,
+      location: locationLabel,
+    }));
+
+    saveSearchLocation({
+      locationLabel,
+      city: normalizedCity,
+      source,
+    });
+  };
+
+  const requestCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      setLocationErrorMessage(
+        "Trình duyệt của bạn không hỗ trợ định vị. Vui lòng chọn thành phố thủ công.",
+      );
+      return;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Reverse geocoding failed");
+      }
+
+      const data = await response.json();
+      const reverseCity =
+        data?.address?.city ||
+        data?.address?.town ||
+        data?.address?.province ||
+        "";
+      const normalizedCity = normalizeCityName(reverseCity);
+      const fullAddress =
+        data?.display_name || normalizedCity || "Địa điểm hiện tại";
+
+      applyLocationSelection(fullAddress, normalizedCity, "geolocation");
+      setLocationErrorMessage("");
+    } catch {
+      setLocationErrorMessage(
+        "Không thể lấy vị trí hiện tại. Vui lòng cấp quyền vị trí hoặc chọn thành phố thủ công.",
+      );
+    }
+  };
+
   const handleSearchSubmit = (event) => {
     event?.preventDefault?.();
 
@@ -443,8 +505,14 @@ const ResultsPage = () => {
     navigate(`${APP_ROUTES.RESULTS}?${nextQueryString}`);
   };
 
-  const handleSelectLocationOption = (value) => {
-    setSearchForm((prev) => ({ ...prev, location: value }));
+  const handleSelectLocationOption = async (value) => {
+    if (value === "Địa điểm hiện tại") {
+      await requestCurrentLocation();
+      return;
+    }
+
+    setLocationErrorMessage("");
+    applyLocationSelection(value, normalizeCityName(value), "manual");
   };
 
   const filterChips = [
@@ -580,6 +648,9 @@ const ResultsPage = () => {
         </div>
 
         {errorMessage ? <Alert variant="warning">{errorMessage}</Alert> : null}
+        {locationErrorMessage ? (
+          <Alert variant="warning">{locationErrorMessage}</Alert>
+        ) : null}
 
         {isLoading ? (
           <div className="d-flex justify-content-center py-5">
