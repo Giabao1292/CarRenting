@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -29,11 +30,11 @@ public class AvailabilitySlot {
 
     @NotNull
     @Column(name = "start_at", nullable = false)
-    private Instant startAt;
+    private LocalDateTime startAt;
 
     @NotNull
     @Column(name = "end_at", nullable = false)
-    private Instant endAt;
+    private LocalDateTime endAt;
 
     @Size(max = 30)
     @NotNull
@@ -44,6 +45,6 @@ public class AvailabilitySlot {
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
 }

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes";
 import AuthModal from "../../../components/auth/AuthModal";
 import { useAuth } from "../../../context/AuthContext";
 
 const TopNav = () => {
-  const { authUser, isLoggedIn, loginUser, defaultAvatar } = useAuth();
+  const { authUser, isLoggedIn, loginUser, logoutUser, defaultAvatar } =
+    useAuth();
+  const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authModalTopOffset, setAuthModalTopOffset] = useState(90);
@@ -19,6 +21,19 @@ const TopNav = () => {
 
   const handleLoginSuccess = (loggedUser) => {
     loginUser(loggedUser);
+  };
+
+  const handleNavigateAccountSettings = () => {
+    navigate(`${APP_ROUTES.PROFILE}?section=settings`);
+  };
+
+  const handleNavigateChangePassword = () => {
+    navigate(`${APP_ROUTES.PROFILE}?section=change-password`);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate(APP_ROUTES.HOME);
   };
 
   useEffect(() => {
@@ -120,11 +135,38 @@ const TopNav = () => {
                   align="end"
                   id="profile-dropdown"
                   className="mioto-user-dropdown"
+                  menuVariant="light"
                 >
-                  <NavDropdown.Item>Hồ sơ</NavDropdown.Item>
-                  <NavDropdown.Item>Cài đặt tài khoản</NavDropdown.Item>
+                  <div className="mioto-dropdown-header px-3 py-2 border-bottom">
+                    <div className="fw-semibold text-dark">
+                      Tài khoản của tôi
+                    </div>
+                    <div className="small text-muted">
+                      {authUser?.email || "Người dùng"}
+                    </div>
+                  </div>
+                  <NavDropdown.Item
+                    onClick={handleNavigateAccountSettings}
+                    className="mioto-dropdown-item d-flex align-items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined">settings</span>
+                    Cài đặt tài khoản
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
+                    onClick={handleNavigateChangePassword}
+                    className="mioto-dropdown-item d-flex align-items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined">lock</span>
+                    Đổi mật khẩu
+                  </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item>Đăng xuất</NavDropdown.Item>
+                  <NavDropdown.Item
+                    onClick={handleLogout}
+                    className="mioto-dropdown-item mioto-dropdown-logout d-flex align-items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined">logout</span>
+                    Đăng xuất
+                  </NavDropdown.Item>
                 </NavDropdown>
               </>
             )}

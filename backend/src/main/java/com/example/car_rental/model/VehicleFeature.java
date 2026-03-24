@@ -24,7 +24,7 @@ public class VehicleFeature {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "vehicleFeatures")
     private Set<Vehicle> vehicles = new LinkedHashSet<>();
 
 }

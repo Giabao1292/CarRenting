@@ -44,7 +44,7 @@ import java.time.Duration;
 @EnableMethodSecurity
 public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
 
-    private String[] WHITE_LIST = {"/api/auth/**"};
+    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/search", "/api/cars"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;
@@ -74,6 +74,9 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/bookings/admin/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/api/reviews/admin/**").permitAll()
+                        .requestMatchers("/api/payments/admin/**").permitAll()
+                        .requestMatchers("/api/users/admin/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(provider()).addFilterBefore(preFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
