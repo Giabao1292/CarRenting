@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   OWNER_DASHBOARD: "/dashboard/owner",
   ADMIN_DASHBOARD: "/dashboard/admin",
   ADMIN_USERS: "/dashboard/admin/users",
+  ADMIN_BOOKINGS: "/dashboard/admin/bookings",
   ADMIN_PAYMENTS: "/dashboard/admin/payments",
   ADMIN_REVIEWS: "/dashboard/admin/reviews",
   PROFILE_VERIFICATION: "/profile/verification",

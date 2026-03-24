@@ -72,6 +72,7 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
                 )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/bookings/admin/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/reviews/admin/**").permitAll()
                         .requestMatchers("/api/payments/admin/**").permitAll()

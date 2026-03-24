@@ -14,7 +14,11 @@ const menuGroups = [
         icon: "group",
         to: APP_ROUTES.ADMIN_USERS,
       },
-      { label: "Booking Management", icon: "book_online" },
+      {
+        label: "Booking Management",
+        icon: "book_online",
+        to: APP_ROUTES.ADMIN_BOOKINGS,
+      },
       {
         label: "Payment Management",
         icon: "account_balance_wallet",
