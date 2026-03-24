@@ -74,6 +74,7 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/payments/admin/**").permitAll()
+                        .requestMatchers("/api/users/admin/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(provider()).addFilterBefore(preFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

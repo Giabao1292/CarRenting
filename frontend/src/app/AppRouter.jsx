@@ -14,6 +14,7 @@ import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
 import PaymentPage from "../pages/user/PaymentPage";
 import ProfileVerificationPage from "../pages/user/ProfileVerificationPage";
 import ResultsPage from "../pages/user/ResultsPage";
+import UserManagementPage from "../pages/admin/UserManagementPage";
 
 const AppRouter = () => {
   return (
@@ -48,6 +49,10 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.ADMIN_DASHBOARD}
               element={<AdminDashboardPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_USERS}
+              element={<UserManagementPage />}
             />
           </Route>
         </Routes>

@@ -7,5 +7,6 @@ export const APP_ROUTES = {
   PROFILE: "/profile",
   OWNER_DASHBOARD: "/dashboard/owner",
   ADMIN_DASHBOARD: "/dashboard/admin",
+  ADMIN_USERS: "/dashboard/admin/users",
   PROFILE_VERIFICATION: "/profile/verification",
 };
