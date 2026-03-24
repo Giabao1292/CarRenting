@@ -20,6 +20,11 @@ const menuGroups = [
         icon: "account_balance_wallet",
         to: APP_ROUTES.ADMIN_PAYMENTS,
       },
+      {
+        label: "Review",
+        icon: "rate_review",
+        to: APP_ROUTES.ADMIN_REVIEWS,
+      },
     ],
   },
   {
