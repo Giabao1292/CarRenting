@@ -30,6 +30,38 @@ const formatTransmission = (transmission) => {
   return transmission;
 };
 
+const toNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const isPromotionActive = (promotion, now = new Date()) => {
+  if (!promotion) {
+    return false;
+  }
+
+  const startAt = promotion.startAt ? new Date(promotion.startAt) : null;
+  const endAt = promotion.endAt ? new Date(promotion.endAt) : null;
+
+  if (
+    startAt instanceof Date &&
+    !Number.isNaN(startAt.getTime()) &&
+    now < startAt
+  ) {
+    return false;
+  }
+
+  if (endAt instanceof Date && !Number.isNaN(endAt.getTime()) && now > endAt) {
+    return false;
+  }
+
+  if (typeof promotion.usageLimit === "number" && promotion.usageLimit <= 0) {
+    return false;
+  }
+
+  return toNumber(promotion.discountValue) > 0;
+};
+
 export const mapVehicleToCard = (vehicle) => {
   const locationLabel =
     vehicle.location || normalizeCityName(vehicle.city || "") || "";
@@ -140,4 +172,35 @@ export const getCars = async ({
       size: payload.size || size,
     },
   };
+};
+
+export const getCarById = async (id) => {
+  if (!id) {
+    throw new Error("Car id is required");
+  }
+
+  const response = await apiClient.get(`/cars/${id}`);
+  return response?.data?.data || null;
+};
+
+export const getPromotions = async () => {
+  const response = await apiClient.get("/promotions");
+  const promotions = response?.data?.data;
+  return Array.isArray(promotions) ? promotions : [];
+};
+
+export const getBestPromotion = (promotions = [], now = new Date()) => {
+  const validPromotions = promotions.filter((promotion) =>
+    isPromotionActive(promotion, now),
+  );
+
+  if (!validPromotions.length) {
+    return null;
+  }
+
+  return validPromotions.reduce((best, current) => {
+    return toNumber(current.discountValue) > toNumber(best.discountValue)
+      ? current
+      : best;
+  });
 };

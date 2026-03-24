@@ -14,3 +14,10 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Environment Variables
+
+Create `.env` from `.env.example`.
+
+- `VITE_API_URL`: backend API base URL.
+- `VITE_GOOGLE_MAPS_API_KEY`: optional. When set, car details page shows Google Static Map image from the car address. When missing, the app falls back to embedded Google Maps view.

@@ -12,7 +12,7 @@ public class AdminReviewDetailResponse {
     private Integer id;
     private Short rating;
     private String comment;
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     private Integer bookingId;
 

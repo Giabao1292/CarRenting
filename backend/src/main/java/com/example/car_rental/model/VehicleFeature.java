@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,5 +27,10 @@ public class VehicleFeature {
 
     @ManyToMany(mappedBy = "vehicleFeatures")
     private Set<Vehicle> vehicles = new LinkedHashSet<>();
+
+    @Size(max = 255)
+    @Nationalized
+    @Column(name = "icon")
+    private String icon;
 
 }

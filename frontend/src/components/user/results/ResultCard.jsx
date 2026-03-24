@@ -55,7 +55,12 @@ const ResultCard = ({ car }) => {
   const ratingValue = getRatingValue(car);
 
   const handleOpenCarDetails = () => {
-    navigate(APP_ROUTES.CAR_DETAILS);
+    if (car.id) {
+      navigate(APP_ROUTES.CAR_DETAILS.replace(":id", String(car.id)));
+      return;
+    }
+
+    navigate(APP_ROUTES.CAR_DETAILS.replace(":id", "1"));
   };
 
   return (
