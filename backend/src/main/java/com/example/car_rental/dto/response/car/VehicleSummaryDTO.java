@@ -1,12 +1,17 @@
 package com.example.car_rental.dto.response.car;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 
 @Data
-@Builder
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class VehicleSummaryDTO {
     private Integer id;
     private String name;           // "Kia Seltos 2024"

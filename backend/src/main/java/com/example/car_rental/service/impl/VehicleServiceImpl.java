@@ -1,11 +1,13 @@
 package com.example.car_rental.service.impl;
 
+import com.example.car_rental.dto.response.FeatureResponseDTO;
 import com.example.car_rental.dto.response.PageResponse;
+import com.example.car_rental.dto.response.ReviewResponseDTO;
+import com.example.car_rental.dto.response.car.VehicleDetailDTO;
 import com.example.car_rental.dto.response.car.VehicleSummaryDTO;
-import com.example.car_rental.model.Location;
-import com.example.car_rental.model.Promotion;
-import com.example.car_rental.model.Vehicle;
-import com.example.car_rental.model.VehicleImage;
+import com.example.car_rental.dto.response.slot.BusySlotDTO;
+import com.example.car_rental.exception.ResourceNotFoundException;
+import com.example.car_rental.model.*;
 import com.example.car_rental.repository.PromotionRepository;
 import com.example.car_rental.repository.SearchCriteriaRepository;
 import com.example.car_rental.repository.VehicleRepository;
@@ -69,7 +71,7 @@ public class VehicleServiceImpl implements VehicleService {
                                     .orElse(null))
                             .rating(v.getAvgRating().doubleValue())
                             .build();
-                }).toList();
+                }).collect(Collectors.toList());
         return PageResponse.<VehicleSummaryDTO>builder()
                 .totalElements((int) vehicles.getTotalElements())
                 .size(vehicles.getSize())
@@ -78,6 +80,38 @@ public class VehicleServiceImpl implements VehicleService {
                 .content(vehicleSummaryDTOList)
                 .build();
     }
+
+    @Override
+    public VehicleDetailDTO getCarDetail(Integer id) {
+        Vehicle v = vehicleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + id));
+        List<FeatureResponseDTO> features = v.getVehicleFeatures().stream().map(f -> FeatureResponseDTO.builder().icon(f.getIcon()).name(f.getName()).build()).toList();
+        List<ReviewResponseDTO> reviews = v.getReviews().stream().map(r -> ReviewResponseDTO.builder()
+                .reviewerName(r.getUser().getUsername())
+                .rating(r.getRating().intValue())
+                .comment(r.getComment())
+                .createdAt(r.getCreatedAt())
+                .avtUrl(r.getUser().getAvatar())
+                .build()).toList();
+        List<BusySlotDTO> busySlots = v.getAvailabilitySlots().stream().map(b -> BusySlotDTO.builder()
+                .start(b.getStartAt())
+                .end(b.getEndAt())
+                .build()).toList();
+        List<String> images = v.getVehicleImages().stream().map(VehicleImage::getImageUrl).toList();
+        VehicleDetailDTO vehicleDetailDTO = VehicleDetailDTO.builder()
+                .id(v.getId())
+                .name(v.getBrand() + " " + v.getModel() + " " + v.getYear())
+                .originalPricePerDay(v.getPricePerDay())
+                .seats(v.getType().getSeating())
+                .transmission(v.getTransmission())
+                .address(v.getDefaultLocation().getAddress() + ", " + v.getDefaultLocation().getCity())
+                .features(features)
+                .reviews(reviews)
+                .busySlots(busySlots)
+                .images(images)
+                .build();
+        return vehicleDetailDTO;
+    }
+
 
     private BigDecimal calcPrice(BigDecimal price, Promotion promotion) {
         if (promotion == null) return price;

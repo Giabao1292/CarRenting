@@ -44,14 +44,14 @@ import java.time.Duration;
 @EnableMethodSecurity
 public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
 
-    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/search", "/api/cars"};
+    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/**", "/api/promotions/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173")
+                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173","https://*.ngrok-free.app")
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*")

@@ -63,7 +63,13 @@ const createMonthCells = (baseMonth) => {
   });
 };
 
-const MonthPanel = ({ monthDate, startDate, endDate, onSelectDate }) => {
+const MonthPanel = ({
+  monthDate,
+  startDate,
+  endDate,
+  onSelectDate,
+  blockedDateKeys,
+}) => {
   const monthCells = createMonthCells(monthDate);
   const startKey = startDate ? toDateKey(startDate) : "";
   const endKey = endDate ? toDateKey(endDate) : "";
@@ -95,7 +101,8 @@ const MonthPanel = ({ monthDate, startDate, endDate, onSelectDate }) => {
 
           const isStart = startKey && cell.dateKey === startKey;
           const isEnd = endKey && cell.dateKey === endKey;
-          const isDisabled = cell.dateKey < todayKey;
+          const isBlocked = blockedDateKeys.has(cell.dateKey);
+          const isDisabled = cell.dateKey < todayKey || isBlocked;
           const isInRange =
             startKey &&
             endKey &&
@@ -110,8 +117,7 @@ const MonthPanel = ({ monthDate, startDate, endDate, onSelectDate }) => {
               onClick={() => onSelectDate(cell.dateKey)}
               className={`booking-calendar__day ${isInRange ? "is-in-range" : ""} ${
                 isStart || isEnd ? "is-selected" : ""
-              } ${isDisabled ? "is-disabled" : ""}
-              }`}
+              } ${isDisabled ? "is-disabled" : ""} ${isBlocked ? "is-blocked" : ""}`}
             >
               {cell.day}
             </button>
@@ -128,6 +134,7 @@ const BookingDateRangePicker = ({
   activeField,
   onSelectDate,
   onClose,
+  blockedDateKeys = [],
 }) => {
   const parsedStartDate = parseDateValue(startDate);
   const parsedEndDate = parseDateValue(endDate);
@@ -138,6 +145,10 @@ const BookingDateRangePicker = ({
 
   const firstMonth = monthCursor;
   const secondMonth = addMonths(firstMonth, 1);
+  const blockedDateKeySet = useMemo(
+    () => new Set(blockedDateKeys),
+    [blockedDateKeys],
+  );
 
   const monthRangeLabel = useMemo(() => {
     return `${MONTH_LABELS[firstMonth.getMonth()]}/${firstMonth.getFullYear()} - ${MONTH_LABELS[secondMonth.getMonth()]}/${secondMonth.getFullYear()}`;
@@ -200,12 +211,14 @@ const BookingDateRangePicker = ({
           monthDate={firstMonth}
           startDate={parsedStartDate}
           endDate={parsedEndDate}
+          blockedDateKeys={blockedDateKeySet}
           onSelectDate={(value) => onSelectDate(activeField, value)}
         />
         <MonthPanel
           monthDate={secondMonth}
           startDate={parsedStartDate}
           endDate={parsedEndDate}
+          blockedDateKeys={blockedDateKeySet}
           onSelectDate={(value) => onSelectDate(activeField, value)}
         />
       </div>

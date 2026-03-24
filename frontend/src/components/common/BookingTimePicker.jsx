@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
   return `${String(hour).padStart(2, "0")}:00`;
 });
@@ -26,11 +28,24 @@ const BookingTimePicker = ({
   onClose,
   minimumLeadHours = 1,
 }) => {
+  const listRef = useRef(null);
+  const selectedItemRef = useRef(null);
   const now = new Date();
   const todayKey = toDateKey(now);
   const selectedDateKey = selectedDate || "";
   const minimumSelectableMinutes =
     now.getHours() * 60 + now.getMinutes() + minimumLeadHours * 60;
+
+  useEffect(() => {
+    if (!selectedItemRef.current || !listRef.current) {
+      return;
+    }
+
+    selectedItemRef.current.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
+  }, [selectedTime, selectedDate]);
 
   return (
     <div className="booking-time-picker">
@@ -50,6 +65,7 @@ const BookingTimePicker = ({
         className="booking-time-picker__list"
         role="listbox"
         aria-label={title}
+        ref={listRef}
       >
         {TIME_SLOTS.map((time) => {
           const isSelected = time === selectedTime;
@@ -72,6 +88,7 @@ const BookingTimePicker = ({
               onClick={() => onSelectTime(time)}
               disabled={isDisabled}
               aria-selected={isSelected}
+              ref={isSelected ? selectedItemRef : null}
             >
               {time}
             </button>
