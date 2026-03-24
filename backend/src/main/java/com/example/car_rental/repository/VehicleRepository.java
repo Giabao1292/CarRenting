@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
@@ -20,4 +20,10 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
     @Query("SELECT v FROM Vehicle v WHERE v.isDeleted = false AND v.status = 'available'")
     Page<Vehicle> findAllAvailable(Pageable pageable);
 
+    @EntityGraph(attributePaths = {
+            "type",
+            "defaultLocation"
+    })
+    @Query("SELECT v FROM Vehicle v WHERE v.id = :id AND v.isDeleted = false")
+    Optional<Vehicle> findById(@Param("id") Integer id);
 }

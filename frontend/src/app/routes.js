@@ -1,7 +1,7 @@
 export const APP_ROUTES = {
   HOME: "/",
   RESULTS: "/results",
-  CAR_DETAILS: "/car-details",
+  CAR_DETAILS: "/car-details/:id",
   PAYMENT: "/payment",
   BOOKING_SUCCESS: "/booking-success",
   PROFILE: "/profile",
