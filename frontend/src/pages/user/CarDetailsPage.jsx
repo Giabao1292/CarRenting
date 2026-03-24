@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Col, Container, Row, Spinner } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import BookingCard from "../../components/user/car-details/BookingCard";
 import CarImageGallery from "../../components/user/car-details/CarImageGallery";
 import CarInfoSection from "../../components/user/car-details/CarInfoSection";
@@ -244,6 +244,33 @@ const mapCarDetails = (car, mapCoordinates = null) => {
         .filter((slot) => slot.start && slot.end)
     : [];
 
+  const heroImages = (() => {
+    const imageEntries = Array.isArray(car.images)
+      ? car.images
+          .map((item) => ({
+            url: String(item?.imageUrl || "").trim(),
+            isPrimary: Boolean(item?.isPrimary),
+          }))
+          .filter((item) => item.url)
+      : [];
+
+    if (!imageEntries.length) {
+      const fallbackImage = String(car.imageUrl || "").trim();
+      return fallbackImage ? [fallbackImage] : [];
+    }
+
+    const primaryImage = imageEntries.find((item) => item.isPrimary);
+    const nonPrimaryImages = imageEntries
+      .filter((item) => !item.isPrimary)
+      .map((item) => item.url);
+
+    if (!primaryImage) {
+      return imageEntries.map((item) => item.url);
+    }
+
+    return [primaryImage.url, ...nonPrimaryImages];
+  })();
+
   const mapAssets = buildGoogleMapAssets(car.address || "", mapCoordinates);
 
   return {
@@ -258,8 +285,9 @@ const mapCarDetails = (car, mapCoordinates = null) => {
       formatTransmission(car.transmission),
     ],
     pricePerDay: originalPricePerDay,
+    pricePerHour: toNumber(car.pricePerHour, 0),
     originalPricePerDay,
-    heroImages: Array.isArray(car.images) ? car.images.filter(Boolean) : [],
+    heroImages,
     description: [
       `Xe ${car.name || ""} có ${toNumber(car.seats, 4)} chỗ ngồi và ${formatTransmission(car.transmission)}.`,
       "Thông tin chi tiết và tình trạng xe sẽ được xác nhận lại trong quá trình đặt xe.",
@@ -275,6 +303,7 @@ const mapCarDetails = (car, mapCoordinates = null) => {
 
 const CarDetailsPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [carData, setCarData] = useState(null);
   const [mapCoordinates, setMapCoordinates] = useState(null);
   const [promotions, setPromotions] = useState([]);
@@ -405,6 +434,51 @@ const CarDetailsPage = () => {
     [carData, mapCoordinates],
   );
 
+  const initialSchedule = useMemo(() => {
+    const pickupAt = String(searchParams.get("pickupAt") || "").trim();
+    const dropoffAt = String(searchParams.get("dropoffAt") || "").trim();
+
+    const parseDateTimeValue = (value) => {
+      const match = /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})(?::\d{2})?$/.exec(
+        value,
+      );
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        date: match[1],
+        time: match[2],
+      };
+    };
+
+    const pickup = parseDateTimeValue(pickupAt);
+    const dropoff = parseDateTimeValue(dropoffAt);
+
+    if (!pickup || !dropoff) {
+      return null;
+    }
+
+    const pickupDateTime = new Date(`${pickup.date}T${pickup.time}:00`);
+    const dropoffDateTime = new Date(`${dropoff.date}T${dropoff.time}:00`);
+
+    if (
+      Number.isNaN(pickupDateTime.getTime()) ||
+      Number.isNaN(dropoffDateTime.getTime()) ||
+      dropoffDateTime <= pickupDateTime
+    ) {
+      return null;
+    }
+
+    return {
+      pickupDate: pickup.date,
+      pickupTime: pickup.time,
+      returnDate: dropoff.date,
+      returnTime: dropoff.time,
+    };
+  }, [searchParams]);
+
   if (isLoading) {
     return (
       <section className="bg-white py-4">
@@ -449,7 +523,11 @@ const CarDetailsPage = () => {
             <CarInfoSection car={carDetails} />
           </Col>
           <Col lg={4} className="d-none d-lg-block">
-            <BookingCard car={carDetails} promotions={promotions} />
+            <BookingCard
+              car={carDetails}
+              promotions={promotions}
+              initialSchedule={initialSchedule}
+            />
           </Col>
         </Row>
 

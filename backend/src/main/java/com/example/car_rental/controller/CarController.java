@@ -9,11 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 
 @RestController
@@ -32,5 +30,15 @@ public class CarController {
     public ResponseData<VehicleDetailDTO> getCarsById(@PathVariable Integer id) {
         VehicleDetailDTO response = vehicleService.getCarDetail(id);
         return new ResponseData<>(200, "Get cars successfully", response);
+    }
+    @GetMapping("/me")
+    public ResponseData<List<VehicleSummaryDTO>> getCarsOwner(Authentication authentication){
+        List<VehicleSummaryDTO> response = vehicleService.getCarsByOwner(authentication.getName());
+        return new ResponseData<>(200, "Get cars successfully", response);
+    }
+    @PatchMapping("/{id}")
+    public ResponseData<String> updateCarStatus(@PathVariable Integer id, @RequestParam String status, Authentication authentication) {
+        vehicleService.updateCarStatus(id, status, authentication.getName());
+        return new ResponseData<>(200, "Car status updated successfully");
     }
 }

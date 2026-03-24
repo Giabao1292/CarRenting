@@ -1,18 +1,25 @@
 import { Col, Container, Row } from "react-bootstrap";
 import { Outlet } from "react-router-dom";
 import OwnerSidebar from "./components/OwnerSidebar";
-import OwnerTopNav from "./components/OwnerTopNav";
-import { ownerDashboardData } from "../../data/ownerDashboardData";
+import TopNav from "../user/components/TopNav";
+import { useAuth } from "../../context/AuthContext";
 
 const OwnerLayout = () => {
+  const { authUser, defaultAvatar } = useAuth();
+  const ownerUser = {
+    avatar: authUser?.avatar || defaultAvatar,
+    name: authUser?.name || authUser?.email || "Chủ xe",
+    role: authUser?.role || "OWNER",
+  };
+
   return (
     <section className="bg-light-subtle" style={{ minHeight: "100vh" }}>
-      <OwnerTopNav avatar={ownerDashboardData.user.avatar} />
+      <TopNav />
 
       <Container fluid="xl" className="py-4 py-lg-5">
         <Row className="g-4">
           <Col lg={3} className="d-none d-lg-block">
-            <OwnerSidebar user={ownerDashboardData.user} />
+            <OwnerSidebar user={ownerUser} />
           </Col>
 
           <Col lg={9}>

@@ -1,6 +1,7 @@
 package com.example.car_rental.dto.response.car;
 
 import com.example.car_rental.dto.response.FeatureResponseDTO;
+import com.example.car_rental.dto.response.ImageResponseDTO;
 import com.example.car_rental.dto.response.ReviewResponseDTO;
 import com.example.car_rental.dto.response.slot.BusySlotDTO;
 import lombok.AllArgsConstructor;
@@ -19,5 +20,5 @@ public class VehicleDetailDTO extends VehicleSummaryDTO {
     private List<BusySlotDTO> busySlots;
     private List<ReviewResponseDTO> reviews;
     private String address;
-    private List<String> images;
+    private List<ImageResponseDTO> images;
 }
