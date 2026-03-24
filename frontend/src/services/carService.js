@@ -62,7 +62,100 @@ const isPromotionActive = (promotion, now = new Date()) => {
   return toNumber(promotion.discountValue) > 0;
 };
 
-export const mapVehicleToCard = (vehicle) => {
+const clampDiscountPercent = (value) => {
+  const numericValue = toNumber(value);
+  if (numericValue <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, numericValue);
+};
+
+const calculateDiscountedPricePerDay = (pricePerDay, discountPercent) => {
+  const basePrice = toNumber(pricePerDay);
+  const normalizedDiscount = clampDiscountPercent(discountPercent);
+
+  if (basePrice <= 0 || normalizedDiscount <= 0) {
+    return basePrice;
+  }
+
+  const discountedValue = basePrice * (1 - normalizedDiscount / 100);
+  return Math.max(0, Math.round(discountedValue));
+};
+
+const getTotalTripPrice = ({
+  pricePerDay,
+  pricePerHour,
+  discountPercent,
+  rentalMinutes,
+}) => {
+  const normalizedMinutes = Math.max(0, Math.floor(toNumber(rentalMinutes)));
+  const basePricePerDay = toNumber(pricePerDay);
+  const basePricePerHour = toNumber(pricePerHour);
+  const discountedPricePerDay = calculateDiscountedPricePerDay(
+    basePricePerDay,
+    discountPercent,
+  );
+
+  if (normalizedMinutes <= 0) {
+    return {
+      original: basePricePerDay,
+      discounted: discountedPricePerDay,
+    };
+  }
+
+  const fullDays = Math.floor(normalizedMinutes / 1440);
+  const remainingMinutes = normalizedMinutes % 1440;
+
+  let dayUnits = fullDays;
+  let extraHours = Math.ceil(remainingMinutes / 60);
+
+  if (extraHours > 0 && basePricePerHour <= 0) {
+    dayUnits += 1;
+    extraHours = 0;
+  }
+
+  if (dayUnits === 0 && extraHours === 0) {
+    dayUnits = 1;
+  }
+
+  const dayOriginalSubtotal = dayUnits * basePricePerDay;
+  const dayDiscountedSubtotal = dayUnits * discountedPricePerDay;
+  const hourSubtotal = extraHours * basePricePerHour;
+
+  return {
+    original: dayOriginalSubtotal + hourSubtotal,
+    discounted: dayDiscountedSubtotal + hourSubtotal,
+  };
+};
+
+export const mapVehicleToCard = (
+  vehicle,
+  { bestPromotion = null, rentalMinutes = 0, priceMode = "daily" } = {},
+) => {
+  const discountPercent = clampDiscountPercent(
+    bestPromotion?.discountValue ?? vehicle.discountPercent,
+  );
+  const originalPricePerDay = toNumber(vehicle.pricePerDay);
+  const discountedPricePerDay = calculateDiscountedPricePerDay(
+    originalPricePerDay,
+    discountPercent,
+  );
+  const shouldShowTotalPrice = priceMode === "total";
+  const totalTripPrice = shouldShowTotalPrice
+    ? getTotalTripPrice({
+        pricePerDay: originalPricePerDay,
+        pricePerHour: vehicle.pricePerHour,
+        discountPercent,
+        rentalMinutes,
+      })
+    : null;
+  const displayBasePrice = shouldShowTotalPrice
+    ? totalTripPrice.original
+    : originalPricePerDay;
+  const displayDiscountedPrice = shouldShowTotalPrice
+    ? totalTripPrice.discounted
+    : discountedPricePerDay;
   const locationLabel =
     vehicle.location || normalizeCityName(vehicle.city || "") || "";
   const normalizedRating = Number(vehicle.avgRating ?? vehicle.rating);
@@ -72,16 +165,14 @@ export const mapVehicleToCard = (vehicle) => {
     title: vehicle.name,
     image: vehicle.imageUrl,
     location: locationLabel,
-    displayPrice: formatCompactVnd(vehicle.pricePerDay),
-    displayOldPrice: vehicle.originalPricePerDay
-      ? formatCompactVnd(Number(vehicle.originalPricePerDay))
-      : "",
-    priceUnit: "/ngày",
+    displayPrice: formatCompactVnd(displayDiscountedPrice || displayBasePrice),
+    displayOldPrice:
+      discountPercent > 0 && displayBasePrice > 0
+        ? formatCompactVnd(displayBasePrice)
+        : "",
+    priceUnit: shouldShowTotalPrice ? "/chuyến" : "/ngày",
     pickupLabel: "Tự nhận xe",
-    flashLabel:
-      vehicle.discountPercent > 0
-        ? `Giảm ${vehicle.discountPercent}%`
-        : "Flash Sale",
+    flashLabel: discountPercent > 0 ? `Giảm ${discountPercent}%` : "Flash Sale",
     specs: [
       {
         icon: "person",
@@ -114,6 +205,9 @@ export const getCars = async ({
   pickupAt = "",
   dropoffAt = "",
   sort = "",
+  bestPromotion = null,
+  rentalMinutes = 0,
+  priceMode = "daily",
 } = {}) => {
   const searchExpressions = [];
   const citySearch = buildCitySearchExpression(city);
@@ -160,7 +254,13 @@ export const getCars = async ({
   const response = await apiClient.get("/cars", { params });
   const payload = response?.data?.data || {};
   const cars = Array.isArray(payload.content)
-    ? payload.content.map(mapVehicleToCard)
+    ? payload.content.map((vehicle) =>
+        mapVehicleToCard(vehicle, {
+          bestPromotion,
+          rentalMinutes,
+          priceMode,
+        }),
+      )
     : [];
 
   return {

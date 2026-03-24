@@ -15,12 +15,31 @@ import {
 import HeroSearchModal from "./HeroSearchModal";
 import HeroSearchSummaryBar from "./HeroSearchSummaryBar";
 
-const INITIAL_SEARCH_FORM = {
-  location: "Hera Spa, 228 Đ. Nguyễn Khắc Viện, Hoà Hải, Ngũ Hành Sơn, Đà Nẵng",
-  pickupDate: "2026-03-22",
-  pickupTime: "23:00",
-  returnDate: "2026-03-25",
-  returnTime: "03:00",
+const getDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const addDays = (date, daysToAdd = 1) => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + daysToAdd);
+  return nextDate;
+};
+
+const getInitialSearchForm = () => {
+  const today = new Date();
+  const tomorrow = addDays(today, 1);
+
+  return {
+    location:
+      "Hera Spa, 228 Đ. Nguyễn Khắc Viện, Hoà Hải, Ngũ Hành Sơn, Đà Nẵng",
+    pickupDate: getDateKey(today),
+    pickupTime: "10:00",
+    returnDate: getDateKey(tomorrow),
+    returnTime: "10:00",
+  };
 };
 
 const parseDateTime = (date, time) => {
@@ -80,13 +99,14 @@ const buildDateTimeSearchValue = (dateValue = "", timeValue = "") => {
 const HeroSection = () => {
   const navigate = useNavigate();
   const [searchForm, setSearchForm] = useState(() => {
+    const initialSearchForm = getInitialSearchForm();
     const savedLocation = getSearchLocation();
     if (!savedLocation?.locationLabel) {
-      return INITIAL_SEARCH_FORM;
+      return initialSearchForm;
     }
 
     return {
-      ...INITIAL_SEARCH_FORM,
+      ...initialSearchForm,
       location: savedLocation.locationLabel,
     };
   });

@@ -64,9 +64,73 @@ export const getOwnerStatus = async () => {
   return status.trim().toUpperCase();
 };
 
+export const getMyCars = async () => {
+  const response = await apiClient.get("/cars/me");
+  const cars = response?.data?.data;
+  return Array.isArray(cars) ? cars : [];
+};
+
+export const getBookingRequests = async () => {
+  const response = await apiClient.get("/bookings");
+  const bookings = response?.data?.data;
+  return Array.isArray(bookings) ? bookings : [];
+};
+
+export const getOwnerTime = async () => {
+  const response = await apiClient.get("/owners/me/time");
+  return response?.data?.data || null;
+};
+
+export const updateCarStatus = async (id, status) => {
+  if (!id || !status) {
+    throw new Error("Thiếu thông tin để cập nhật trạng thái xe.");
+  }
+
+  const response = await apiClient.patch(`/cars/${id}`, null, {
+    params: { status },
+  });
+
+  return response?.data;
+};
+
+export const updateOwnerTime = async ({ open, close }) => {
+  if (!open || !close) {
+    throw new Error("Thiếu thời gian mở cửa hoặc đóng cửa.");
+  }
+
+  const response = await apiClient.put(
+    "/owners/me/time",
+    {
+      open,
+      close,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return response?.data;
+};
+
+export const updateOwnerTimeWithParams = async ({ open, close }) => {
+  const response = await apiClient.put("/owners/me/time", null, {
+    params: { open, close },
+  });
+
+  return response?.data;
+};
+
 const ownerService = {
   registerOwner,
   getOwnerStatus,
+  getMyCars,
+  getBookingRequests,
+  getOwnerTime,
+  updateCarStatus,
+  updateOwnerTime,
+  updateOwnerTimeWithParams,
 };
 
 export default ownerService;

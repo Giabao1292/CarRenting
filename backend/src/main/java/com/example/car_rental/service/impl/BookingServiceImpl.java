@@ -1,10 +1,18 @@
 package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.response.*;
+import com.example.car_rental.model.Booking;
+import com.example.car_rental.model.Vehicle;
+import com.example.car_rental.model.VehicleImage;
 import com.example.car_rental.repository.BookingRepository;
+import com.example.car_rental.repository.UserRepository;
+import com.example.car_rental.repository.VehicleRepository;
 import com.example.car_rental.service.BookingService;
+import com.example.car_rental.service.VehicleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +20,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -19,6 +28,9 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final VehicleService vehicleService;
+    private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Override
     public Page<AdminBookingResponse> getBookings(
@@ -241,5 +253,30 @@ public class BookingServiceImpl implements BookingService {
         if (value instanceof LocalDateTime localDateTime) return localDateTime;
         if (value instanceof Timestamp timestamp) return timestamp.toLocalDateTime();
         return LocalDateTime.parse(value.toString().replace(" ", "T"));
+    }
+
+    @Override
+    public List<OwnerBookingRequestResponse> getBookingRequest(String userEmail) {
+        List<Booking> bookings = bookingRepository.findAllByBookingItemsVehicleOwnerUserEmailAndStatus(userEmail, "pending");
+        return bookings.stream().flatMap(booking -> booking.getBookingItems().stream()
+            .map(item ->
+            {
+                Vehicle vehicle = item.getVehicle();
+                String imageUrl = vehicle.getVehicleImages()
+                        .stream()
+                        .filter(VehicleImage::getIsPrimary)
+                        .findFirst()
+                        .map(VehicleImage::getImageUrl)
+                        .orElse(null);
+                return OwnerBookingRequestResponse.builder()
+                        .bookingId(booking.getId())
+                        .pickupAt(LocalDateTime.ofInstant(booking.getPickupAt(), ZoneId.systemDefault()))
+                        .dropoffAt(LocalDateTime.ofInstant(booking.getDropoffAt(), ZoneId.systemDefault()))
+                        .totalAmount(booking.getTotalAmount())
+                        .status(booking.getStatus())
+                        .vehicleName(vehicle.getBrand() + " " + vehicle.getModel())
+                        .imageUrl(imageUrl).customerEmail(booking.getUser().getEmail())
+                        .build();
+            })).toList();
     }
 }

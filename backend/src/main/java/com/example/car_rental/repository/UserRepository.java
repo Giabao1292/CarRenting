@@ -1,5 +1,6 @@
 package com.example.car_rental.repository;
 
+import com.example.car_rental.model.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.car_rental.model.User;
 
@@ -51,4 +52,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     FROM users
     """, nativeQuery = true)
     List<Object[]> getUserDashboard();
+
 }

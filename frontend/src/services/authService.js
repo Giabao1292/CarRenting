@@ -16,6 +16,7 @@ export const login = async ({ email, password }) => {
   saveToken(payload.accessToken, payload.refreshToken);
 
   return {
+    name: payload.name || payload.fullName || payload.displayName || email,
     role: payload.role,
     email,
     avatar: payload.avatar,

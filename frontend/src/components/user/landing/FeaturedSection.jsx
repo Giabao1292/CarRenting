@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { Alert, Col, Row, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes";
-import { getCars } from "../../../services/carService";
+import {
+  getBestPromotion,
+  getCars,
+  getPromotions,
+} from "../../../services/carService";
 import { buildCitySearchExpression } from "../../../utils/locationSearch";
 import { getSearchLocation } from "../../../utils/locationStorage";
 import { featuredCars } from "../../../data/landingData";
@@ -41,12 +45,21 @@ const FeaturedSection = () => {
       try {
         const savedLocation = getSearchLocation();
         const city = savedLocation?.city || "";
+        let bestPromotion = null;
+
+        try {
+          const promotions = await getPromotions();
+          bestPromotion = getBestPromotion(promotions);
+        } catch {
+          bestPromotion = null;
+        }
 
         const response = await getCars({
           page: 0,
           size: 16,
           city,
           sort: "avgRating,desc",
+          bestPromotion,
         });
 
         if (isCancelled) {
@@ -111,7 +124,7 @@ const FeaturedSection = () => {
         </Alert>
       ) : null}
 
-      <Row xs={1} sm={2} lg={4} className="g-3">
+      <Row xs={1} sm={2} lg={4} className="g-3 landing-featured-grid">
         {displayCars.map((car) => (
           <Col key={car.id || car.title}>
             <ResultCard car={car} />

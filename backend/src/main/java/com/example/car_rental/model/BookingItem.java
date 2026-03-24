@@ -33,21 +33,6 @@ public class BookingItem {
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
-    @NotNull
-    @Column(name = "price_per_unit", nullable = false, precision = 12, scale = 2)
-    private BigDecimal pricePerUnit;
-
-    @NotNull
-    @ColumnDefault("1")
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
-
-    @Size(max = 20)
-    @NotNull
-    @ColumnDefault("'day'")
-    @Column(name = "unit", nullable = false, length = 20)
-    private String unit;
-
     @Column(name = "start_at")
     private Instant startAt;
 

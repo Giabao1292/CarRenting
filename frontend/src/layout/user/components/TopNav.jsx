@@ -9,6 +9,12 @@ const TopNav = () => {
   const { authUser, isLoggedIn, loginUser, logoutUser, defaultAvatar } =
     useAuth();
   const navigate = useNavigate();
+  const normalizedRole = String(authUser?.role || "").toUpperCase();
+  const isOwner = normalizedRole.includes("OWNER");
+  const ownerEntryLabel = isOwner ? "Quản Lý Xe" : "Trở thành chủ xe";
+  const ownerEntryRoute = isOwner
+    ? APP_ROUTES.OWNER_DASHBOARD
+    : APP_ROUTES.OWNER_REGISTER;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authModalTopOffset, setAuthModalTopOffset] = useState(90);
@@ -76,12 +82,8 @@ const TopNav = () => {
               <Nav.Link as={Link} to={APP_ROUTES.HOME} className="text-dark">
                 Về YIOTO
               </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to={APP_ROUTES.OWNER_REGISTER}
-                className="text-dark"
-              >
-                Trở thành chủ xe
+              <Nav.Link as={Link} to={ownerEntryRoute} className="text-dark">
+                {ownerEntryLabel}
               </Nav.Link>
               <Nav.Link as={Link} to={APP_ROUTES.PROFILE} className="text-dark">
                 Chuyến của tôi
@@ -129,7 +131,7 @@ const TopNav = () => {
                           event.currentTarget.src = defaultAvatar;
                         }}
                       />
-                      {authUser?.email || "Người dùng"}
+                      {authUser?.name || authUser?.email || "Người dùng"}
                     </span>
                   }
                   align="end"
@@ -139,7 +141,7 @@ const TopNav = () => {
                 >
                   <div className="mioto-dropdown-header px-3 py-2 border-bottom">
                     <div className="fw-semibold text-dark">
-                      Tài khoản của tôi
+                      {authUser?.name || "Tài khoản của tôi"}
                     </div>
                     <div className="small text-muted">
                       {authUser?.email || "Người dùng"}

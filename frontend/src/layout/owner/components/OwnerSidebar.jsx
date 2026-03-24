@@ -10,20 +10,23 @@ const sideItems = [
 ];
 
 const OwnerSidebar = ({ user }) => {
+  const displayName = user?.name || user?.email || "Chủ xe";
+  const displayRole = user?.role || "OWNER";
+
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden owner-sidebar-card h-100">
       <Card.Body className="p-4 d-flex flex-column">
         <div className="d-flex align-items-center gap-3 mb-4">
           <img
-            src={user.avatar}
-            alt={user.name}
+            src={user?.avatar}
+            alt={displayName}
             width={56}
             height={56}
             className="rounded-circle object-fit-cover"
           />
           <div>
-            <h6 className="fw-bold mb-1">{user.name}</h6>
-            <Badge className="badge-soft-primary border-0">{user.role}</Badge>
+            <h6 className="fw-bold mb-1">{displayName}</h6>
+            <Badge className="badge-soft-primary border-0">{displayRole}</Badge>
           </div>
         </div>
 

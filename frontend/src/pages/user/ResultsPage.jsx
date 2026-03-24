@@ -7,7 +7,11 @@ import HeroSearchModal from "../../components/user/landing/HeroSearchModal";
 import HeroSearchSummaryBar from "../../components/user/landing/HeroSearchSummaryBar";
 import ResultCard from "../../components/user/results/ResultCard";
 import { resultCards } from "../../data/resultsData";
-import { getCars } from "../../services/carService";
+import {
+  getBestPromotion,
+  getCars,
+  getPromotions,
+} from "../../services/carService";
 import {
   buildCitySearchExpression,
   extractCityFromLocation,
@@ -19,12 +23,30 @@ import {
   saveSearchLocation,
 } from "../../utils/locationStorage";
 
-const INITIAL_SEARCH_FORM = {
-  location: "Đà Nẵng",
-  pickupDate: "2026-03-23",
-  pickupTime: "03:00",
-  returnDate: "2026-03-25",
-  returnTime: "07:00",
+const getDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const addDays = (date, daysToAdd = 1) => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + daysToAdd);
+  return nextDate;
+};
+
+const getInitialSearchForm = () => {
+  const today = new Date();
+  const tomorrow = addDays(today, 1);
+
+  return {
+    location: "Đà Nẵng",
+    pickupDate: getDateKey(today),
+    pickupTime: "10:00",
+    returnDate: getDateKey(tomorrow),
+    returnTime: "10:00",
+  };
 };
 
 const CITY_TO_PROVINCE_CODE = {
@@ -101,6 +123,79 @@ const parseDateTimeSearchValue = (value = "") => {
   };
 };
 
+const parseDateTime = (date, time) => {
+  if (!date || !time) {
+    return null;
+  }
+
+  const parsed = new Date(`${date}T${time}:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+};
+
+const isNightTime = (time) => {
+  const [hour] = (time || "").split(":").map(Number);
+  if (Number.isNaN(hour)) {
+    return false;
+  }
+
+  return hour >= 23 || hour < 7;
+};
+
+const formatRentalDuration = (start, end) => {
+  if (!start || !end) {
+    return "0 giờ";
+  }
+
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs <= 0) {
+    return "0 giờ";
+  }
+
+  const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+
+  if (!days) {
+    return `${hours} giờ`;
+  }
+
+  if (!hours) {
+    return `${days} ngày`;
+  }
+
+  return `${days} ngày ${hours} giờ`;
+};
+
+const calculateRentalMinutes = (pickupAt = "", dropoffAt = "") => {
+  const pickup = parseDateTimeSearchValue(pickupAt);
+  const dropoff = parseDateTimeSearchValue(dropoffAt);
+
+  if (!pickup || !dropoff) {
+    return 0;
+  }
+
+  const pickupDate = new Date(`${pickup.date}T${pickup.time}:00`);
+  const dropoffDate = new Date(`${dropoff.date}T${dropoff.time}:00`);
+
+  if (
+    Number.isNaN(pickupDate.getTime()) ||
+    Number.isNaN(dropoffDate.getTime())
+  ) {
+    return 0;
+  }
+
+  const diffMs = dropoffDate.getTime() - pickupDate.getTime();
+  if (diffMs <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(diffMs / (1000 * 60)));
+};
+
 const ResultsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -123,13 +218,14 @@ const ResultsPage = () => {
   const [locationErrorMessage, setLocationErrorMessage] = useState("");
 
   const [searchForm, setSearchForm] = useState(() => {
+    const initialSearchForm = getInitialSearchForm();
     const savedLocation = getSearchLocation();
     const baseForm = {
-      ...INITIAL_SEARCH_FORM,
-      pickupDate: parsedPickupAt?.date || INITIAL_SEARCH_FORM.pickupDate,
-      pickupTime: parsedPickupAt?.time || INITIAL_SEARCH_FORM.pickupTime,
-      returnDate: parsedDropoffAt?.date || INITIAL_SEARCH_FORM.returnDate,
-      returnTime: parsedDropoffAt?.time || INITIAL_SEARCH_FORM.returnTime,
+      ...initialSearchForm,
+      pickupDate: parsedPickupAt?.date || initialSearchForm.pickupDate,
+      pickupTime: parsedPickupAt?.time || initialSearchForm.pickupTime,
+      returnDate: parsedDropoffAt?.date || initialSearchForm.returnDate,
+      returnTime: parsedDropoffAt?.time || initialSearchForm.returnTime,
     };
 
     if (!savedLocation?.locationLabel) {
@@ -338,6 +434,19 @@ const ResultsPage = () => {
       setErrorMessage("");
 
       try {
+        const rentalMinutes = calculateRentalMinutes(
+          pickupAtFromSearch,
+          dropoffAtFromSearch,
+        );
+        let bestPromotion = null;
+
+        try {
+          const promotions = await getPromotions();
+          bestPromotion = getBestPromotion(promotions);
+        } catch {
+          bestPromotion = null;
+        }
+
         const response = await getCars({
           city: selectedCity,
           size: 40,
@@ -351,6 +460,9 @@ const ResultsPage = () => {
           pickupAt: pickupAtFromSearch,
           dropoffAt: dropoffAtFromSearch,
           sort: filters.sort,
+          bestPromotion,
+          rentalMinutes,
+          priceMode: "total",
         });
         if (isCancelled) {
           return;
@@ -581,6 +693,30 @@ const ResultsPage = () => {
     filters.tranmission === "all" &&
     filters.area === "all";
 
+  const rentalDuration = useMemo(() => {
+    const pickupDateTime = parseDateTime(
+      searchForm.pickupDate,
+      searchForm.pickupTime,
+    );
+    const returnDateTime = parseDateTime(
+      searchForm.returnDate,
+      searchForm.returnTime,
+    );
+
+    return formatRentalDuration(pickupDateTime, returnDateTime);
+  }, [
+    searchForm.pickupDate,
+    searchForm.pickupTime,
+    searchForm.returnDate,
+    searchForm.returnTime,
+  ]);
+
+  const showNightNotice = useMemo(() => {
+    return (
+      isNightTime(searchForm.pickupTime) || isNightTime(searchForm.returnTime)
+    );
+  }, [searchForm.pickupTime, searchForm.returnTime]);
+
   return (
     <>
       <section className="results-page__search-strip">
@@ -658,7 +794,7 @@ const ResultsPage = () => {
           </div>
         ) : null}
 
-        <Row xs={1} md={2} lg={4} className="g-3">
+        <Row xs={1} md={2} lg={4} className="g-3 results-page__cards-grid">
           {!isLoading && cards.length === 0 ? (
             <Col>
               <div className="text-muted-soft">Không tìm thấy xe phù hợp.</div>
@@ -695,8 +831,8 @@ const ResultsPage = () => {
         show={showSearchModal}
         onHide={() => setShowSearchModal(false)}
         formData={searchForm}
-        rentalDuration="2 ngày 4 giờ"
-        showNightNotice={false}
+        rentalDuration={rentalDuration}
+        showNightNotice={showNightNotice}
         onFieldChange={handleSearchFieldChange}
         onSelectLocationOption={handleSelectLocationOption}
         onSubmit={handleSearchSubmit}

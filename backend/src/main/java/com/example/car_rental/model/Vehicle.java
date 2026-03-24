@@ -121,4 +121,7 @@ public class Vehicle {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @Column(name = "price_per_hour", precision = 12, scale = 2)
+    private BigDecimal pricePerHour;
+
 }

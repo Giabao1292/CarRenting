@@ -6,19 +6,27 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+
 @Data
 @Builder
-public class AdminBookingResponse {
-    private Integer id;
-    private String bookingCode;
+public class OwnerBookingRequestResponse {
 
-    private String customerName;
+    private Integer bookingId;
+
     private String customerEmail;
-    private String pickupLocation;
+
     private LocalDateTime pickupAt;
+
     private LocalDateTime dropoffAt;
+
     private BigDecimal totalAmount;
+
     private String status;
 
     private LocalDateTime createdAt;
+
+    private String vehicleName;
+
+    private String imageUrl;
+
 }
