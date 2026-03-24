@@ -6,6 +6,7 @@ import OwnerLayout from "../layout/owner/OwnerLayout";
 import UserLayout from "../layout/user/UserLayout";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import BookingManagementPage from "../pages/admin/BookingManagementPage";
+import CarManagementPage from "../pages/admin/CarManagementPage";
 import BookingSuccessPage from "../pages/user/BookingSuccessPage";
 import CarDetailsPage from "../pages/user/CarDetailsPage";
 import ProfileLayout from "../layout/profile/ProfileLayout";
@@ -52,6 +53,10 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.ADMIN_DASHBOARD}
               element={<AdminDashboardPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_CARS}
+              element={<CarManagementPage />}
             />
             <Route
               path={APP_ROUTES.ADMIN_USERS}

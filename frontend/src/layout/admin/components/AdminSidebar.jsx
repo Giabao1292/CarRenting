@@ -7,8 +7,11 @@ const menuGroups = [
     title: "Main Menu",
     items: [
       { label: "Overview", icon: "dashboard", to: APP_ROUTES.ADMIN_DASHBOARD },
-      { label: "Car Approvals", icon: "directions_car", badge: "18" },
-      { label: "Active Rentals", icon: "key" },
+      {
+        label: "Car Management",
+        icon: "directions_car",
+        to: APP_ROUTES.ADMIN_CARS,
+      },
       {
         label: "User Management",
         icon: "group",
