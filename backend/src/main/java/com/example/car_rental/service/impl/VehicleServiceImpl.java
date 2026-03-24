@@ -26,6 +26,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.example.car_rental.dto.request.AdminRejectCarRequest;
+import com.example.car_rental.dto.response.AdminCarDetailResponse;
+import com.example.car_rental.dto.response.AdminCarResponse;
+import com.example.car_rental.dto.response.AdminCarSummaryResponse;
+import com.example.car_rental.model.VehicleImage;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDate;
 
 
 @Service
@@ -139,5 +148,142 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + id));
         vehicle.setStatus(status);
         vehicleRepository.save(vehicle);
+    }
+    @Override
+    public AdminCarSummaryResponse getAdminCarSummary() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+
+        long totalCars = vehicleRepository.countByIsDeletedFalse();
+        long availableCars = vehicleRepository.countByStatusAndIsDeletedFalse("available");
+        long rejectedCars = vehicleRepository.countByStatusAndIsDeletedFalse("rejected");
+        long unavailableCars = vehicleRepository.countUnavailableCarsToday(startOfDay, endOfDay);
+
+        return AdminCarSummaryResponse.builder()
+                .totalCars(totalCars)
+                .availableCars(availableCars)
+                .rejectedCars(rejectedCars)
+                .unavailableCars(unavailableCars)
+                .build();
+    }
+
+    @Override
+    public Page<AdminCarResponse> getAdminAllCars(String keyword, String status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return vehicleRepository.findAllCars(keyword, status, pageable)
+                .map(this::mapToAdminCarResponse);
+    }
+
+    @Override
+    public Page<AdminCarResponse> getAdminPendingCars(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return vehicleRepository.findPendingCars(pageable)
+                .map(this::mapToAdminCarResponse);
+    }
+
+    @Override
+    public AdminCarDetailResponse getAdminCarDetail(Integer id) {
+        Vehicle vehicle = vehicleRepository.findActiveCarDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with id: " + id));
+
+        return mapToAdminCarDetailResponse(vehicle);
+    }
+
+    @Override
+    public void adminRemoveCar(Integer id) {
+        Vehicle vehicle = vehicleRepository.findActiveCarDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with id: " + id));
+
+        vehicle.setIsDeleted(true);
+        vehicle.setRejectionReason(null);
+        vehicle.setUpdatedAt(LocalDateTime.now());
+
+        vehicleRepository.save(vehicle);
+    }
+
+    @Override
+    public void adminApproveCar(Integer id) {
+        Vehicle vehicle = vehicleRepository.findActiveCarDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with id: " + id));
+
+        if (!"pending".equalsIgnoreCase(vehicle.getStatus())) {
+            throw new IllegalStateException("Only pending cars can be approved");
+        }
+
+        vehicle.setStatus("available");
+        vehicle.setRejectionReason(null);
+        vehicle.setUpdatedAt(LocalDateTime.now());
+
+        vehicleRepository.save(vehicle);
+    }
+
+    @Override
+    public void adminRejectCar(Integer id, AdminRejectCarRequest request) {
+        Vehicle vehicle = vehicleRepository.findActiveCarDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with id: " + id));
+
+        if (!"pending".equalsIgnoreCase(vehicle.getStatus())) {
+            throw new IllegalStateException("Only pending cars can be rejected");
+        }
+
+        vehicle.setStatus("rejected");
+        vehicle.setRejectionReason(request.getReason().trim());
+        vehicle.setUpdatedAt(LocalDateTime.now());
+
+        vehicleRepository.save(vehicle);
+    }
+
+    private AdminCarResponse mapToAdminCarResponse(Vehicle vehicle) {
+        String thumbnail = vehicle.getVehicleImages() == null
+                ? null
+                : vehicle.getVehicleImages().stream()
+                .filter(VehicleImage::getIsPrimary)
+                .map(VehicleImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+
+        return AdminCarResponse.builder()
+                .id(vehicle.getId())
+                .thumbnail(thumbnail)
+                .licensePlate(vehicle.getLicensePlate())
+                .brand(vehicle.getBrand())
+                .model(vehicle.getModel())
+                .pricePerDay(vehicle.getPricePerDay())
+                .status(vehicle.getStatus())
+                .build();
+    }
+
+    private AdminCarDetailResponse mapToAdminCarDetailResponse(Vehicle vehicle) {
+        List<String> images = vehicle.getVehicleImages() == null
+                ? List.of()
+                : vehicle.getVehicleImages().stream()
+                .map(VehicleImage::getImageUrl)
+                .toList();
+
+        return AdminCarDetailResponse.builder()
+                .id(vehicle.getId())
+                .licensePlate(vehicle.getLicensePlate())
+                .brand(vehicle.getBrand())
+                .model(vehicle.getModel())
+                .year(vehicle.getYear())
+                .color(vehicle.getColor())
+                .pricePerDay(vehicle.getPricePerDay())
+                .status(vehicle.getStatus())
+                .rejectionReason(vehicle.getRejectionReason())
+                .ownerId(vehicle.getOwnerUser() != null ? vehicle.getOwnerUser().getId() : null)
+                .ownerName(vehicle.getOwnerUser() != null ? vehicle.getOwnerUser().getFullName() : null)
+                .ownerEmail(vehicle.getOwnerUser() != null ? vehicle.getOwnerUser().getEmail() : null)
+                .vehicleTypeId(vehicle.getType() != null ? vehicle.getType().getId() : null)
+                .vehicleTypeName(vehicle.getType() != null ? vehicle.getType().getName() : null)
+                .locationId(vehicle.getDefaultLocation() != null ? vehicle.getDefaultLocation().getId() : null)
+                .locationName(vehicle.getDefaultLocation() != null ? vehicle.getDefaultLocation().getName() : null)
+                .locationAddress(vehicle.getDefaultLocation() != null ? vehicle.getDefaultLocation().getAddress() : null)
+                .images(images)
+                .createdAt(vehicle.getCreatedAt())
+                .updatedAt(vehicle.getUpdatedAt())
+                .build();
     }
 }
