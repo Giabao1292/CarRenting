@@ -44,14 +44,14 @@ import java.time.Duration;
 @EnableMethodSecurity
 public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
 
-    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/search", "/api/cars"};
+    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/**", "/api/promotions/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173")
+                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173","https://*.ngrok-free.app")
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*")
@@ -73,6 +73,9 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/api/reviews/admin/**").permitAll()
+                        .requestMatchers("/api/payments/admin/**").permitAll()
+                        .requestMatchers("/api/users/admin/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(provider()).addFilterBefore(preFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

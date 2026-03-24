@@ -46,5 +46,4 @@ public class AvailabilitySlot {
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-
 }

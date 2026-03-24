@@ -12,8 +12,11 @@ import LandingPage from "../pages/user/LandingPage";
 import NotFoundPage from "../pages/common/NotFoundPage";
 import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
 import PaymentPage from "../pages/user/PaymentPage";
+import PaymentManagementPage from "../pages/admin/PaymentManagementPage";
 import ProfileVerificationPage from "../pages/user/ProfileVerificationPage";
+import ReviewManagementPage from "../pages/admin/ReviewManagementPage";
 import ResultsPage from "../pages/user/ResultsPage";
+import UserManagementPage from "../pages/admin/UserManagementPage";
 
 const AppRouter = () => {
   return (
@@ -48,6 +51,18 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.ADMIN_DASHBOARD}
               element={<AdminDashboardPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_USERS}
+              element={<UserManagementPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_PAYMENTS}
+              element={<PaymentManagementPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_REVIEWS}
+              element={<ReviewManagementPage />}
             />
           </Route>
         </Routes>
