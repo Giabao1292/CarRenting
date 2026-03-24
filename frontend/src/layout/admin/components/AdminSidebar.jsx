@@ -1,13 +1,25 @@
+import { Link, useLocation } from "react-router-dom";
 import { Badge, Button, Card, ListGroup } from "react-bootstrap";
+import { APP_ROUTES } from "../../../app/routes";
 
 const menuGroups = [
   {
     title: "Main Menu",
     items: [
-      { label: "Overview", icon: "dashboard", active: true },
+      { label: "Overview", icon: "dashboard", to: APP_ROUTES.ADMIN_DASHBOARD },
       { label: "Car Approvals", icon: "directions_car", badge: "18" },
       { label: "Active Rentals", icon: "key" },
-      { label: "User Management", icon: "group" },
+      {
+        label: "User Management",
+        icon: "group",
+        to: APP_ROUTES.ADMIN_USERS,
+      },
+      { label: "Booking Management", icon: "book_online" },
+      {
+        label: "Payment Management",
+        icon: "account_balance_wallet",
+        to: APP_ROUTES.ADMIN_PAYMENTS,
+      },
     ],
   },
   {
@@ -20,6 +32,8 @@ const menuGroups = [
 ];
 
 const AdminSidebar = () => {
+  const location = useLocation();
+
   return (
     <Card className="border-0 shadow-sm rounded-4 admin-sidebar-card h-100">
       <Card.Body className="p-3 d-flex flex-column gap-3">
@@ -29,28 +43,34 @@ const AdminSidebar = () => {
               {group.title}
             </small>
             <ListGroup variant="flush" className="admin-nav-list">
-              {group.items.map((item) => (
-                <ListGroup.Item
-                  key={item.label}
-                  action
-                  className={`border-0 rounded-3 px-3 py-2 mb-1 d-flex align-items-center gap-2 fw-semibold ${
-                    item.active ? "admin-nav-active" : "text-muted"
-                  }`}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 19 }}
+              {group.items.map((item) => {
+                const isActive = item.to && location.pathname === item.to;
+
+                return (
+                  <ListGroup.Item
+                    key={item.label}
+                    as={item.to ? Link : "div"}
+                    to={item.to}
+                    action={Boolean(item.to)}
+                    className={`border-0 rounded-3 px-3 py-2 mb-1 d-flex align-items-center gap-2 fw-semibold ${
+                      isActive ? "admin-nav-active" : "text-muted"
+                    }`}
                   >
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <Badge bg="success" pill className="ms-auto">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </ListGroup.Item>
-              ))}
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 19 }}
+                    >
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <Badge bg="success" pill className="ms-auto">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </ListGroup.Item>
+                );
+              })}
             </ListGroup>
           </div>
         ))}

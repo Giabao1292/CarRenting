@@ -89,7 +89,7 @@ CREATE TABLE bookings (
                           id INT IDENTITY(1,1) PRIMARY KEY,
                           booking_code VARCHAR(50) NOT NULL UNIQUE,
                           user_id INT NOT NULL,
-                          status VARCHAR(30) NOT NULL DEFAULT 'pending',
+                          status VARCHAR(30) NOT NULL DEFAULT 'pending',  -- pending, active, completed, cancelled
                           pickup_location_id INT NOT NULL,
                           dropoff_location_id INT NOT NULL,
                           pickup_at DATETIME2 NOT NULL,
