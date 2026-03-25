@@ -2242,6 +2242,15 @@ button:disabled,
   color: #16a34a;
 }
 
+.profile-status-pill-rejected {
+  color: #991b1b;
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.profile-status-pill-rejected .profile-status-pill-icon {
+  color: #dc2626;
+}
+
 .profile-note {
   border-radius: 10px;
   font-size: 0.82rem;
@@ -2256,6 +2265,38 @@ button:disabled,
 .profile-note-success {
   background: #eaf8f0;
   color: #166534;
+}
+
+.profile-license-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.profile-license-status-approved {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.profile-license-status-pending {
+  color: #854d0e;
+  background: #fef3c7;
+}
+
+.profile-license-status-rejected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.profile-license-status-default {
+  color: #334155;
+  background: #e2e8f0;
 }
 
 .profile-my-trips-hero {

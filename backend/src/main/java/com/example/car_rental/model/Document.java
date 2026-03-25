@@ -12,6 +12,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -53,6 +54,15 @@ public class Document {
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
+
+    @Size(max = 20)
+    @Column(name = "status", length = 20)
+    private String status;
+
+    @Size(max = 500)
+    @Nationalized
+    @Column(name = "reason", length = 500)
+    private String reason;
 
 }
