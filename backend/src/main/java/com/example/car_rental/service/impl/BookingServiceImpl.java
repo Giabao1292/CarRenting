@@ -85,8 +85,8 @@ public class BookingServiceImpl implements BookingService {
                         .vehicleId(toInteger(item[1]))
                         .vehicleName(toStringValue(item[2]))
                         .pricePerDay(toBigDecimal(item[3]))
-                        .quantity(1)
-                        .subtotal(toBigDecimal(item[4]))
+                        .quantity(toInteger(item[4]))
+                        .subtotal(toBigDecimal(item[5]))
                         .build())
                 .toList();
 
@@ -259,24 +259,24 @@ public class BookingServiceImpl implements BookingService {
     public List<OwnerBookingRequestResponse> getBookingRequest(String userEmail) {
         List<Booking> bookings = bookingRepository.findAllByBookingItemsVehicleOwnerUserEmailAndStatus(userEmail, "pending");
         return bookings.stream().flatMap(booking -> booking.getBookingItems().stream()
-            .map(item ->
-            {
-                Vehicle vehicle = item.getVehicle();
-                String imageUrl = vehicle.getVehicleImages()
-                        .stream()
-                        .filter(VehicleImage::getIsPrimary)
-                        .findFirst()
-                        .map(VehicleImage::getImageUrl)
-                        .orElse(null);
-                return OwnerBookingRequestResponse.builder()
-                        .bookingId(booking.getId())
-                        .pickupAt(LocalDateTime.ofInstant(booking.getPickupAt(), ZoneId.systemDefault()))
-                        .dropoffAt(LocalDateTime.ofInstant(booking.getDropoffAt(), ZoneId.systemDefault()))
-                        .totalAmount(booking.getTotalAmount())
-                        .status(booking.getStatus())
-                        .vehicleName(vehicle.getBrand() + " " + vehicle.getModel())
-                        .imageUrl(imageUrl).customerEmail(booking.getUser().getEmail())
-                        .build();
-            })).toList();
+                .map(item ->
+                {
+                    Vehicle vehicle = item.getVehicle();
+                    String imageUrl = vehicle.getVehicleImages()
+                            .stream()
+                            .filter(VehicleImage::getIsPrimary)
+                            .findFirst()
+                            .map(VehicleImage::getImageUrl)
+                            .orElse(null);
+                    return OwnerBookingRequestResponse.builder()
+                            .bookingId(booking.getId())
+                            .pickupAt(LocalDateTime.ofInstant(booking.getPickupAt(), ZoneId.systemDefault()))
+                            .dropoffAt(LocalDateTime.ofInstant(booking.getDropoffAt(), ZoneId.systemDefault()))
+                            .totalAmount(booking.getTotalAmount())
+                            .status(booking.getStatus())
+                            .vehicleName(vehicle.getBrand() + " " + vehicle.getModel())
+                            .imageUrl(imageUrl).customerEmail(booking.getUser().getEmail())
+                            .build();
+                })).toList();
     }
 }

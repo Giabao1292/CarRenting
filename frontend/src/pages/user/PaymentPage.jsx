@@ -35,6 +35,56 @@ const formatDateText = (date, time) => {
   return `${day}/${month}/${year} • ${time}`;
 };
 
+const normalizeText = (value) => {
+  const normalized = String(value || "").trim();
+  return normalized || "";
+};
+
+const inferCityFromLocationText = (locationText) => {
+  const normalized = normalizeText(locationText);
+  if (!normalized) {
+    return "";
+  }
+
+  const chunks = normalized
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return chunks.length ? chunks[chunks.length - 1] : "";
+};
+
+const buildCheckoutLocationPayload = (paymentDraft) => {
+  const details = paymentDraft?.locationDetails || null;
+
+  if (details && typeof details === "object") {
+    const district = normalizeText(details.district);
+    const ward = normalizeText(details.ward);
+    const streetAddress = normalizeText(details.streetAddress);
+    const city = normalizeText(details.province);
+
+    const address = [district, ward, streetAddress].filter(Boolean).join(", ");
+
+    return {
+      locationCity: city,
+      locationAddress: address || normalizeText(details.fullAddress),
+      locationLat: Number.isFinite(Number(details.lat))
+        ? Number(details.lat)
+        : null,
+      locationLng: Number.isFinite(Number(details.lng))
+        ? Number(details.lng)
+        : null,
+    };
+  }
+
+  return {
+    locationCity: inferCityFromLocationText(paymentDraft?.location),
+    locationAddress: normalizeText(paymentDraft?.location),
+    locationLat: null,
+    locationLng: null,
+  };
+};
+
 const paymentMethods = [
   {
     id: "stripe",
@@ -139,8 +189,9 @@ const PaymentPage = () => {
       dropoffAt: dropoffDateTime.toISOString(),
       totalAmount,
       currency: "VND",
+      ...buildCheckoutLocationPayload(paymentDraft),
     };
-  }, [bookingSummary, paymentDraft?.totalPrice]);
+  }, [bookingSummary, paymentDraft]);
 
   const handleConfirmCheckout = async () => {
     setErrorMessage("");

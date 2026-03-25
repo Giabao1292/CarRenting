@@ -36,4 +36,14 @@ public class CreateCheckoutSessionRequest {
 
     @Size(max = 10, message = "currency length must be <= 10")
     private String currency = "VND";
+
+    @Size(max = 100, message = "locationCity length must be <= 100")
+    private String locationCity;
+
+    @Size(max = 500, message = "locationAddress length must be <= 500")
+    private String locationAddress;
+
+    private Double locationLat;
+
+    private Double locationLng;
 }
