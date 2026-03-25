@@ -14,6 +14,7 @@ import {
 import { APP_ROUTES } from "../../app/routes";
 import AvatarUploader from "../../components/common/AvatarUploader";
 import { useAuth } from "../../context/AuthContext";
+import { changePassword } from "../../services/authService";
 import { uploadProfileAvatar } from "../../services/profile/profileAvatarService";
 import { createReview } from "../../services/profile/profileReviewService";
 import { getMyTrips } from "../../services/profile/profileTripService";
@@ -76,6 +77,9 @@ const resolveTripStatus = (trip) => {
 
 const mapMyTripToCard = (trip) => {
   const status = resolveTripStatus(trip);
+  const reviewId = Number(trip?.reviewId || 0);
+  const reviewRating = Number(trip?.reviewRating || 0);
+  const reviewComment = String(trip?.reviewComment || "").trim();
 
   return {
     id: Number(trip?.bookingId || 0),
@@ -91,6 +95,10 @@ const mapMyTripToCard = (trip) => {
     ownerPhone: String(trip?.ownerPhone || "").trim(),
     price: formatCurrencyVnd(trip?.totalAmount),
     image: String(trip?.vehicleImageUrl || "").trim() || DEFAULT_TRIP_IMAGE,
+    reviewId: reviewId > 0 ? reviewId : null,
+    reviewRating: reviewRating >= 1 && reviewRating <= 5 ? reviewRating : 0,
+    reviewComment,
+    reviewed: reviewId > 0,
   };
 };
 
@@ -120,16 +128,34 @@ const ProfileLayout = () => {
   const [isTripsLoading, setIsTripsLoading] = useState(false);
   const [tripsError, setTripsError] = useState("");
   const [activeTripTab, setActiveTripTab] = useState("current");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewTrip, setReviewTrip] = useState(null);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const isReviewReadOnly = Boolean(reviewTrip?.reviewed);
 
   const activeSection = useMemo(() => {
     const params = new URLSearchParams(location.search);
-    return params.get("tab") === "trips" ? "trips" : "account";
+    const tab = params.get("tab");
+    const section = params.get("section");
+
+    if (tab === "trips") {
+      return "trips";
+    }
+
+    if (section === "change-password") {
+      return "password";
+    }
+
+    return "account";
   }, [location.search]);
 
   const displayAvatar = avatarUrl || contextAvatar || profileData.user.avatar;
@@ -203,15 +229,54 @@ const ProfileLayout = () => {
       return;
     }
 
+    if (sectionKey === "password") {
+      navigate("?section=change-password", { replace: true });
+      return;
+    }
+
     if (sectionKey === "account") {
       navigate(location.pathname, { replace: true });
     }
   };
 
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    setPasswordMessage("");
+    setPasswordError("");
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Vui lòng nhập đầy đủ thông tin mật khẩu.");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError("Mật khẩu mới phải có ít nhất 8 ký tự.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      await changePassword({ currentPassword, newPassword, confirmPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordMessage("Đổi mật khẩu thành công.");
+    } catch (error) {
+      setPasswordError(error?.message || "Không thể đổi mật khẩu.");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   const handleOpenReviewModal = (trip) => {
     setReviewTrip(trip);
-    setReviewRating(0);
-    setReviewComment("");
+    setReviewRating(Number(trip?.reviewRating || 0));
+    setReviewComment(String(trip?.reviewComment || ""));
     setReviewError("");
     setShowReviewModal(true);
   };
@@ -221,6 +286,11 @@ const ProfileLayout = () => {
 
     if (!reviewTrip?.bookingId || !reviewTrip?.vehicleId) {
       setReviewError("Thiếu thông tin chuyến để gửi đánh giá.");
+      return;
+    }
+
+    if (isReviewReadOnly) {
+      setReviewError("Bạn đã đánh giá chuyến này rồi.");
       return;
     }
 
@@ -356,7 +426,9 @@ const ProfileLayout = () => {
                           {reviewTrip?.name || "Xe thuê"}
                         </div>
                         <div className="text-muted small">
-                          Chọn số sao của bạn
+                          {isReviewReadOnly
+                            ? "Đánh giá bạn đã gửi"
+                            : "Chọn số sao của bạn"}
                         </div>
                       </div>
 
@@ -374,6 +446,7 @@ const ProfileLayout = () => {
                             }`}
                             onClick={() => setReviewRating(star)}
                             aria-label={`${star} sao`}
+                            disabled={isReviewReadOnly}
                           >
                             <span className="material-symbols-outlined">
                               star
@@ -389,7 +462,12 @@ const ProfileLayout = () => {
                         onChange={(event) =>
                           setReviewComment(event.target.value)
                         }
-                        placeholder="Hãy chia sẻ trải nghiệm chuyến đi của bạn..."
+                        placeholder={
+                          isReviewReadOnly
+                            ? "Nội dung đánh giá của bạn"
+                            : "Hãy chia sẻ trải nghiệm chuyến đi của bạn..."
+                        }
+                        readOnly={isReviewReadOnly}
                       />
 
                       {reviewError ? (
@@ -398,17 +476,103 @@ const ProfileLayout = () => {
                         </Alert>
                       ) : null}
 
-                      <Button
-                        className="btn-primary-custom"
-                        onClick={handleSubmitReview}
-                        disabled={isSubmittingReview}
-                      >
-                        {isSubmittingReview ? "Đang gửi..." : "Gửi đánh giá"}
-                      </Button>
+                      {!isReviewReadOnly ? (
+                        <Button
+                          className="btn-primary-custom"
+                          onClick={handleSubmitReview}
+                          disabled={isSubmittingReview}
+                        >
+                          {isSubmittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                        </Button>
+                      ) : null}
                     </div>
                   </Modal.Body>
                 </Modal>
               </>
+            ) : activeSection === "password" ? (
+              <Card className="border-0 shadow-sm rounded-4">
+                <Card.Body className="p-4 p-md-5">
+                  <h4 className="fw-bold mb-2">Đổi mật khẩu</h4>
+                  <p className="text-muted mb-4">
+                    Cập nhật mật khẩu mới để bảo vệ tài khoản của bạn.
+                  </p>
+
+                  <Form
+                    className="d-grid gap-3"
+                    onSubmit={handleChangePassword}
+                  >
+                    <Form.Group controlId="current-password">
+                      <Form.Label>Mật khẩu hiện tại</Form.Label>
+                      <Form.Control
+                        type="password"
+                        value={currentPassword}
+                        onChange={(event) =>
+                          setCurrentPassword(event.target.value)
+                        }
+                        placeholder="Nhập mật khẩu hiện tại"
+                        autoComplete="current-password"
+                      />
+                    </Form.Group>
+
+                    <Form.Group controlId="new-password">
+                      <Form.Label>Mật khẩu mới</Form.Label>
+                      <Form.Control
+                        type="password"
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder="Nhập mật khẩu mới"
+                        autoComplete="new-password"
+                      />
+                    </Form.Group>
+
+                    <Form.Group controlId="confirm-new-password">
+                      <Form.Label>Xác nhận mật khẩu mới</Form.Label>
+                      <Form.Control
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(event) =>
+                          setConfirmPassword(event.target.value)
+                        }
+                        placeholder="Nhập lại mật khẩu mới"
+                        autoComplete="new-password"
+                      />
+                    </Form.Group>
+
+                    {passwordError ? (
+                      <Alert variant="warning" className="mb-0 py-2">
+                        {passwordError}
+                      </Alert>
+                    ) : null}
+
+                    {passwordMessage ? (
+                      <Alert variant="success" className="mb-0 py-2">
+                        {passwordMessage}
+                      </Alert>
+                    ) : null}
+
+                    <div className="d-flex gap-2 mt-2">
+                      <Button
+                        type="submit"
+                        className="btn-primary-custom px-4"
+                        disabled={isChangingPassword}
+                      >
+                        {isChangingPassword
+                          ? "Đang cập nhật..."
+                          : "Cập nhật mật khẩu"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline-secondary"
+                        onClick={() =>
+                          navigate(location.pathname, { replace: true })
+                        }
+                      >
+                        Huỷ
+                      </Button>
+                    </div>
+                  </Form>
+                </Card.Body>
+              </Card>
             ) : (
               <>
                 <Card className="border-0 shadow-sm rounded-4">

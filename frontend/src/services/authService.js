@@ -195,11 +195,30 @@ export const loginWithGoogle = async () => {
   });
 };
 
+export const changePassword = async ({
+  currentPassword,
+  newPassword,
+  confirmPassword,
+}) => {
+  try {
+    await apiClient.post("/auth/change-password", {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+  } catch (error) {
+    throw new Error(
+      normalizeServerError(error, "Không thể đổi mật khẩu. Vui lòng thử lại."),
+    );
+  }
+};
+
 const authService = {
   login,
   register,
   verifyRegistration,
   loginWithGoogle,
+  changePassword,
 };
 
 export default authService;

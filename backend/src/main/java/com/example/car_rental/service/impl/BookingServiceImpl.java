@@ -210,7 +210,7 @@ public class BookingServiceImpl implements BookingService {
                 }
                 String value = groupBy.toLowerCase();
                 if (!value.equals("day") && !value.equals("month") && !value.equals("year")) {
-                        return "month";
+                        return "mon th";
                 }
                 return value;
         }
@@ -297,8 +297,17 @@ public class BookingServiceImpl implements BookingService {
                                                 .vehicleImageUrl(toStringValue(row[10]))
                                                 .ownerPhone(toStringValue(row[11]))
                                                 .pickupLocation(toStringValue(row[12]))
+                                                .reviewId(toInteger(row[13]))
+                                                .reviewRating(toShort(row[14]))
+                                                .reviewComment(toStringValue(row[15]))
                                                 .build())
                                 .toList();
+        }
+
+        private Short toShort(Object value) {
+                if (value == null)
+                        return null;
+                return ((Number) value).shortValue();
         }
 
         private String normalizeWhitespace(String value) {

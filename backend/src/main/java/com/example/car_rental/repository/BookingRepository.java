@@ -208,7 +208,10 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
                           CONCAT(COALESCE(v.brand, ''), ' ', COALESCE(v.model, '')) AS vehicle_name,
                           vi.image_url,
                           ou.phone AS owner_phone,
-                          COALESCE(pl.address, pl.name, '') AS pickup_location
+                          COALESCE(pl.address, pl.name, '') AS pickup_location,
+                          rv.id AS review_id,
+                          rv.rating AS review_rating,
+                          rv.comment AS review_comment
                         FROM bookings b
                         JOIN booking_items bi ON bi.booking_id = b.id
                         JOIN vehicles v ON v.id = bi.vehicle_id
@@ -220,6 +223,14 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
                           WHERE vii.vehicle_id = v.id
                           ORDER BY CASE WHEN vii.is_primary = 1 THEN 0 ELSE 1 END, vii.id ASC
                         ) vi
+                        OUTER APPLY (
+                          SELECT TOP 1 rr.id, rr.rating, rr.comment
+                          FROM reviews rr
+                          WHERE rr.booking_id = b.id
+                            AND rr.vehicle_id = v.id
+                            AND rr.user_id = :userId
+                          ORDER BY rr.created_at DESC, rr.id DESC
+                        ) rv
                         WHERE b.user_id = :userId
                         ORDER BY b.created_at DESC, b.id DESC
                         """, nativeQuery = true)
