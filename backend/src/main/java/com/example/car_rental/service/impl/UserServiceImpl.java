@@ -1,9 +1,11 @@
 package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.response.AdminUserDashboardResponse;
+import com.example.car_rental.dto.response.TokenResponse;
 import com.example.car_rental.exception.ResourceNotFoundException;
 import com.example.car_rental.model.User;
 import com.example.car_rental.repository.UserRepository;
+import com.example.car_rental.service.JwtService;
 import com.example.car_rental.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Override
     public User findByEmail(String email) {
@@ -142,6 +145,20 @@ public class UserServiceImpl implements UserService {
                 .activeUsers(((Number) row[1]).longValue())
                 .blockedUsers(((Number) row[2]).longValue())
                 .verifiedUsers(((Number) row[3]).longValue())
+                .build();
+    }
+
+    @Override
+    public TokenResponse saveUser(String email) {
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + email));
+        user.setVerified(true);
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+        return TokenResponse.builder()
+                .accessToken(jwtService.generateToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
+                .avatar(user.getAvatar())
+                .role(user.getRole())
                 .build();
     }
 }
