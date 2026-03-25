@@ -45,49 +45,55 @@ public class CarController {
         return new ResponseData<>(200, "Car status updated successfully");
     }
     @GetMapping("/admin/summary")
-    public AdminCarSummaryResponse getAdminCarSummary() {
-        return vehicleService.getAdminCarSummary();
+    public ResponseData<AdminCarSummaryResponse> getAdminCarSummary() {
+        AdminCarSummaryResponse response = vehicleService.getAdminCarSummary();
+        return new ResponseData<>(200, "Get car summary successfully", response);
     }
 
     @GetMapping("/admin")
-    public Page<AdminCarResponse> getAdminAllCars(
+    public ResponseData<Page<AdminCarResponse>> getAdminAllCars(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return vehicleService.getAdminAllCars(keyword, status, page, size);
+        Page<AdminCarResponse> response = vehicleService.getAdminAllCars(keyword, status, page, size);
+        return new ResponseData<>(200, "Get all cars successfully", response);
     }
 
     @GetMapping("/admin/pending")
-    public Page<AdminCarResponse> getAdminPendingCars(
+    public ResponseData<Page<AdminCarResponse>> getAdminPendingCars(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return vehicleService.getAdminPendingCars(page, size);
+        Page<AdminCarResponse> response = vehicleService.getAdminPendingCars(page, size);
+        return new ResponseData<>(200, "Get pending cars successfully", response);
     }
 
     @GetMapping("/admin/{id}")
-    public AdminCarDetailResponse getAdminCarDetail(@PathVariable Integer id) {
-        return vehicleService.getAdminCarDetail(id);
+    public ResponseData<AdminCarDetailResponse> getAdminCarDetail(@PathVariable Integer id) {
+        AdminCarDetailResponse response = vehicleService.getAdminCarDetail(id);
+        return new ResponseData<>(200, "Get car detail successfully", response);
     }
 
     @PutMapping("/admin/{id}/remove")
-    public String adminRemoveCar(@PathVariable Integer id) {
+    public ResponseData<String> adminRemoveCar(@PathVariable Integer id) {
         vehicleService.adminRemoveCar(id);
-        return "Car removed successfully";
+        return new ResponseData<>(200, "Car removed successfully");
     }
 
     @PutMapping("/admin/{id}/approve")
-    public String adminApproveCar(@PathVariable Integer id) {
+    public ResponseData<String> adminApproveCar(@PathVariable Integer id) {
         vehicleService.adminApproveCar(id);
-        return "Car approved successfully";
+        return new ResponseData<>(200, "Car approved successfully");
     }
 
     @PutMapping("/admin/{id}/reject")
-    public String adminRejectCar(@PathVariable Integer id,
-                                 @Valid @RequestBody AdminRejectCarRequest request) {
+    public ResponseData<String> adminRejectCar(
+            @PathVariable Integer id,
+            @Valid @RequestBody AdminRejectCarRequest request
+    ) {
         vehicleService.adminRejectCar(id, request);
-        return "Car rejected successfully";
+        return new ResponseData<>(200, "Car rejected successfully");
     }
 }

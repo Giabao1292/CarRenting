@@ -16,7 +16,9 @@ import NotFoundPage from "../pages/common/NotFoundPage";
 import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
 import PaymentPage from "../pages/user/PaymentPage";
 import PaymentManagementPage from "../pages/admin/PaymentManagementPage";
+import OwnerManagementPage from "../pages/admin/OwnerManagementPage";
 import ProfileVerificationPage from "../pages/user/ProfileVerificationPage";
+import PromotionManagementPage from "../pages/admin/PromotionManagementPage";
 import ReviewManagementPage from "../pages/admin/ReviewManagementPage";
 import ResultsPage from "../pages/user/ResultsPage";
 import UserManagementPage from "../pages/admin/UserManagementPage";
@@ -76,6 +78,10 @@ const AppRouter = () => {
               element={<UserManagementPage />}
             />
             <Route
+              path={APP_ROUTES.ADMIN_OWNERS}
+              element={<OwnerManagementPage />}
+            />
+            <Route
               path={APP_ROUTES.ADMIN_BOOKINGS}
               element={<BookingManagementPage />}
             />
@@ -86,6 +92,10 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.ADMIN_REVIEWS}
               element={<ReviewManagementPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_PROMOTIONS}
+              element={<PromotionManagementPage />}
             />
           </Route>
         </Routes>
