@@ -1,9 +1,12 @@
 package com.example.car_rental.controller;
 
 import com.example.car_rental.dto.request.LoginRequest;
+import com.example.car_rental.dto.request.RegisterRequest;
+import com.example.car_rental.dto.request.VerifyRequestDTO;
 import com.example.car_rental.dto.response.ResponseData;
 import com.example.car_rental.dto.response.TokenResponse;
 import com.example.car_rental.service.AuthenticationService;
+import com.example.car_rental.service.MailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +24,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
     @Autowired
     private AuthenticationService authService;
+    @Autowired
+    private MailService mailService;
 
     @PostMapping("/login")
     public ResponseData<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokenResponse = authService.authenticate(request);
         return new ResponseData<>(HttpStatus.OK.value(), "Login successfully", tokenResponse);
+    }
+    @PostMapping("/register")
+    public ResponseData<String> register(@Valid @RequestBody RegisterRequest request) {
+        String token = authService.register(request);
+        mailService.sendVerificationEmail(request.getEmail(), token);
+        return new ResponseData<>(HttpStatus.OK.value(), "Register successfully user check email");
+    }
+    @PostMapping("/verify")
+    public ResponseData<TokenResponse> verifyEmail(@RequestBody VerifyRequestDTO verifyRequestDTO){
+        TokenResponse tokenResponse = authService.verifyTokenRegister(verifyRequestDTO);
+        return new ResponseData<>(HttpStatus.OK.value(), "Verify successfully", tokenResponse);
     }
 }

@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/cars")
@@ -30,6 +32,17 @@ public class CarController {
     public ResponseData<VehicleDetailDTO> getCarsById(@PathVariable Integer id) {
         VehicleDetailDTO response = vehicleService.getCarDetail(id);
         return new ResponseData<>(200, "Get cars successfully", response);
+    }
+
+    @GetMapping("/me")
+    public ResponseData<List<VehicleSummaryDTO>> getCarsOwner(Authentication authentication){
+        List<VehicleSummaryDTO> response = vehicleService.getCarsByOwner(authentication.getName());
+        return new ResponseData<>(200, "Get cars successfully", response);
+    }
+    @PatchMapping("/{id}")
+    public ResponseData<String> updateCarStatus(@PathVariable Integer id, @RequestParam String status, Authentication authentication) {
+        vehicleService.updateCarStatus(id, status, authentication.getName());
+        return new ResponseData<>(200, "Car status updated successfully");
     }
     @GetMapping("/admin/summary")
     public ResponseData<AdminCarSummaryResponse> getAdminCarSummary() {

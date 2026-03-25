@@ -1,6 +1,7 @@
 package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.response.FeatureResponseDTO;
+import com.example.car_rental.dto.response.ImageResponseDTO;
 import com.example.car_rental.dto.response.PageResponse;
 import com.example.car_rental.dto.response.ReviewResponseDTO;
 import com.example.car_rental.dto.response.car.VehicleDetailDTO;
@@ -42,7 +43,6 @@ public class VehicleServiceImpl implements VehicleService {
     private final VehicleRepository vehicleRepository;
     private final SearchCriteriaRepository searchCriteriaRepository;
     private final SearchCriteriaService searchCriteriaService;
-    private final PromotionRepository promotionRepository;
 
     @Override
     public PageResponse<VehicleSummaryDTO> getCars(Pageable pageable, String userEmail, String... search) {
@@ -60,7 +60,6 @@ public class VehicleServiceImpl implements VehicleService {
             vehicles = searchCriteriaRepository.searchVehicles(pageable, pickupAt, dropoffAt, searchList.toArray(new String[0]));
         }
 
-        Promotion promotion = promotionRepository.findBestPromotion(userEmail, pickupAt == null ? LocalDateTime.now() : pickupAt).orElse(null);
         List<VehicleSummaryDTO> vehicleSummaryDTOList = vehicles.getContent().stream()
                 .map(v -> {
                     Location location = v.getDefaultLocation();
@@ -68,9 +67,8 @@ public class VehicleServiceImpl implements VehicleService {
                             .id(v.getId())
                             .name(v.getBrand() + " " + v.getModel() + " " + v.getYear())
                             .location(location.getAddress())
-                            .pricePerDay(calcPrice(v.getPricePerDay(), promotion))
-                            .originalPricePerDay(v.getPricePerDay())
-                            .discountPercent(promotion == null ? 0 : promotion.getDiscountValue().intValue())
+                            .pricePerDay(v.getPricePerDay())
+                            .pricePerHour(v.getPricePerHour())
                             .seats(v.getType().getSeating())
                             .transmission(v.getTransmission())
                             .imageUrl(v.getVehicleImages().stream()
@@ -105,11 +103,15 @@ public class VehicleServiceImpl implements VehicleService {
                 .start(b.getStartAt())
                 .end(b.getEndAt())
                 .build()).toList();
-        List<String> images = v.getVehicleImages().stream().map(VehicleImage::getImageUrl).toList();
+        List<ImageResponseDTO> images = v.getVehicleImages().stream().map(i -> ImageResponseDTO.builder()
+                .isPrimary(i.getIsPrimary())
+                .imageUrl(i.getImageUrl()).build())
+                .collect(Collectors.toList());
         VehicleDetailDTO vehicleDetailDTO = VehicleDetailDTO.builder()
                 .id(v.getId())
                 .name(v.getBrand() + " " + v.getModel() + " " + v.getYear())
-                .originalPricePerDay(v.getPricePerDay())
+                .pricePerDay(v.getPricePerDay())
+                .pricePerHour(v.getPricePerHour())
                 .seats(v.getType().getSeating())
                 .transmission(v.getTransmission())
                 .address(v.getDefaultLocation().getAddress() + ", " + v.getDefaultLocation().getCity())
@@ -121,13 +123,31 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleDetailDTO;
     }
 
+    @Override
+    public List<VehicleSummaryDTO> getCarsByOwner(String userEmail) {
+        List<Vehicle> vehicles = vehicleRepository.findAllByOwnerUserEmail(userEmail);
 
-    private BigDecimal calcPrice(BigDecimal price, Promotion promotion) {
-        if (promotion == null) return price;
-        return price.subtract(
-                        price.multiply(promotion.getDiscountValue()
-                                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)))
-                .setScale(0, RoundingMode.HALF_UP);
+        return vehicles.stream().map(v -> VehicleSummaryDTO
+                .builder()
+                .id(v.getId())
+                .name(v.getBrand() + " " + v.getModel())
+                .imageUrl(v.getVehicleImages()
+                        .stream()
+                        .filter(VehicleImage::getIsPrimary)
+                        .findFirst()
+                        .map(VehicleImage::getImageUrl)
+                        .orElse(null))
+                .rating(v.getAvgRating().doubleValue())
+                .pricePerDay(v.getPricePerDay())
+                .status(v.getStatus())
+                .build()).collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateCarStatus(Integer id, String status, String userEmail) {
+        Vehicle vehicle = vehicleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + id));
+        vehicle.setStatus(status);
+        vehicleRepository.save(vehicle);
     }
     @Override
     public AdminCarSummaryResponse getAdminCarSummary() {

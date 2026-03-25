@@ -195,4 +195,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
         ORDER BY count_value DESC
         """, nativeQuery = true)
     List<Object[]> getTopBookedVehicles(Pageable pageable);
+
+
+    List<Booking> findAllByBookingItemsVehicleOwnerUserEmailAndStatus(String email, String status);
 }

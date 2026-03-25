@@ -11,13 +11,26 @@ const getDateKey = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const addDaysToDateKey = (dateKey, daysToAdd = 1) => {
-  const [year, month, day] = (dateKey || "").split("-").map(Number);
+const parseDateKey = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
   if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day);
+};
+
+const addDaysToDateKey = (dateKey, daysToAdd = 1) => {
+  const baseDate = parseDateKey(dateKey);
+  if (!baseDate) {
     return "";
   }
 
-  const nextDate = new Date(year, month - 1, day);
+  const nextDate = new Date(baseDate);
   nextDate.setDate(nextDate.getDate() + daysToAdd);
   return getDateKey(nextDate);
 };
@@ -130,40 +143,51 @@ const HeroSearchModal = ({
     const today = getDateKey(new Date());
 
     // Chặn ngày quá khứ
-    if (dateValue < today) return;
+    if (dateValue < today) {
+      return;
+    }
 
     if (field === "pickupDate") {
       onFieldChange("pickupDate", dateValue);
-      const nextDay = addDaysToDateKey(dateValue, 1);
+      const nextDay = addDaysToDateKey(dateValue, 1) || dateValue;
 
-      // pickupDate mới sau returnDate hiện tại hoặc thiếu returnDate -> tự set +1 ngày
+      // pickupDate mới sau/đúng returnDate hiện tại hoặc thiếu returnDate -> tự set +1 ngày
       if (formData.returnDate && dateValue >= formData.returnDate) {
         onFieldChange("returnDate", nextDay);
       } else if (!formData.returnDate) {
         onFieldChange("returnDate", nextDay);
       }
+
+      // Giống flow car-detail: chọn ngày nhận xong thì chuyển qua chọn ngày trả.
+      setActivePicker("returnDate");
       return;
     }
 
     if (field === "returnDate") {
-      const previousDay = addDaysToDateKey(dateValue, -1);
-
-      // Chưa có pickupDate -> tự set pickup = return - 1 ngày
       if (!formData.pickupDate) {
-        onFieldChange("pickupDate", previousDay || dateValue);
-        onFieldChange("returnDate", dateValue);
+        onFieldChange("pickupDate", dateValue);
+        onFieldChange(
+          "returnDate",
+          addDaysToDateKey(dateValue, 1) || dateValue,
+        );
+        setActivePicker("returnDate");
         return;
       }
 
-      // Nếu return không sau pickup hiện tại -> kéo pickup lùi 1 ngày theo return
+      // Nếu ngày trả <= ngày nhận: reset từ ngày nhận mới và yêu cầu chọn lại ngày trả.
       if (dateValue <= formData.pickupDate) {
-        onFieldChange("pickupDate", previousDay || dateValue);
-        onFieldChange("returnDate", dateValue);
+        onFieldChange("pickupDate", dateValue);
+        onFieldChange(
+          "returnDate",
+          addDaysToDateKey(dateValue, 1) || dateValue,
+        );
+        setActivePicker("returnDate");
         return;
       }
 
-      // Return hợp lệ -> cập nhật bình thường
+      // Return hợp lệ -> cập nhật và chuyển qua chọn giờ nhận.
       onFieldChange("returnDate", dateValue);
+      setActivePicker("pickupTime");
     }
   };
 

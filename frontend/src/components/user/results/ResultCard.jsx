@@ -1,5 +1,5 @@
 import { Card } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes";
 
 const getCardSpecs = (car) => {
@@ -45,6 +45,7 @@ const getRatingValue = (car) => {
 
 const ResultCard = ({ car }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const specs = getCardSpecs(car);
   const displayPrice = getDisplayPrice(car);
   const displayOldPrice = getDisplayOldPrice(car);
@@ -55,12 +56,31 @@ const ResultCard = ({ car }) => {
   const ratingValue = getRatingValue(car);
 
   const handleOpenCarDetails = () => {
+    const query = new URLSearchParams(location.search || "");
+    const pickupAt = query.get("pickupAt") || "";
+    const dropoffAt = query.get("dropoffAt") || "";
+    const nextQuery = new URLSearchParams();
+
+    if (pickupAt) {
+      nextQuery.set("pickupAt", pickupAt);
+    }
+
+    if (dropoffAt) {
+      nextQuery.set("dropoffAt", dropoffAt);
+    }
+
+    const detailsPath = APP_ROUTES.CAR_DETAILS.replace(
+      ":id",
+      String(car.id || 1),
+    );
+    const queryString = nextQuery.toString();
+
     if (car.id) {
-      navigate(APP_ROUTES.CAR_DETAILS.replace(":id", String(car.id)));
+      navigate(queryString ? `${detailsPath}?${queryString}` : detailsPath);
       return;
     }
 
-    navigate(APP_ROUTES.CAR_DETAILS.replace(":id", "1"));
+    navigate(queryString ? `${detailsPath}?${queryString}` : detailsPath);
   };
 
   return (
@@ -90,20 +110,28 @@ const ResultCard = ({ car }) => {
       <Card.Body className="result-car-card__body">
         <h3 className="result-car-card__title">{car.title}</h3>
 
-        {ratingValue !== null ? (
-          <div
-            className="result-car-card__rating-row"
-            aria-label={`Đánh giá ${ratingValue.toFixed(1)} trên 5`}
-          >
-            <span className="material-symbols-outlined result-car-card__rating-star">
-              star
-            </span>
-            <span className="result-car-card__rating-value">
-              {ratingValue.toFixed(1)}
-            </span>
-            <span className="result-car-card__rating-max">/5</span>
-          </div>
-        ) : null}
+        <div
+          className={`result-car-card__rating-row ${ratingValue === null ? "is-empty" : ""}`}
+          aria-label={
+            ratingValue !== null
+              ? `Đánh giá ${ratingValue.toFixed(1)} trên 5`
+              : "Chưa có đánh giá"
+          }
+        >
+          {ratingValue !== null ? (
+            <>
+              <span className="material-symbols-outlined result-car-card__rating-star">
+                star
+              </span>
+              <span className="result-car-card__rating-value">
+                {ratingValue.toFixed(1)}
+              </span>
+              <span className="result-car-card__rating-max">/5</span>
+            </>
+          ) : (
+            <span className="result-car-card__rating-empty">&nbsp;</span>
+          )}
+        </div>
 
         <p className="result-car-card__location">{locationLabel}</p>
 

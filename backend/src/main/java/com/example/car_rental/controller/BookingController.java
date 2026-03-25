@@ -5,6 +5,7 @@ import com.example.car_rental.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -91,5 +92,11 @@ public class BookingController {
     ) {
         List<TopBookedVehicleResponse> response = bookingService.getTopBookedVehicles(limit);
         return new ResponseData<>(200, "Get top booked vehicles successfully", response);
+    }
+
+    @GetMapping
+    public ResponseData<List<OwnerBookingRequestResponse>> getBookingRequest(Authentication authentication) {
+        List<OwnerBookingRequestResponse> bookingResponses =  bookingService.getBookingRequest(authentication.getName());
+        return new ResponseData<>(200, "Get booking requests successfully", bookingResponses);
     }
 }

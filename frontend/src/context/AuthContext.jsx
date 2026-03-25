@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }) => {
     if (!storedUser) return null;
 
     return {
+      name: storedUser.name,
       email: storedUser.email,
       role: storedUser.role,
       avatar: resolveAvatar(storedUser.avatar),
@@ -39,6 +40,12 @@ export const AuthProvider = ({ children }) => {
 
   const loginUser = (loggedUser) => {
     const nextAuthUser = {
+      name:
+        loggedUser?.name ||
+        loggedUser?.fullName ||
+        loggedUser?.displayName ||
+        loggedUser?.email ||
+        "Người dùng",
       email: loggedUser?.email || "",
       role: loggedUser?.role || "",
       avatar: resolveAvatar(loggedUser?.avatar),

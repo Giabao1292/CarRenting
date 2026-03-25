@@ -158,18 +158,42 @@ const findNextAvailableDate = (
   return "";
 };
 
-const getRentalDays = (startDateKey, endDateKey) => {
+const getTripDurationInMinutes = (
+  startDateKey,
+  startTimeValue,
+  endDateKey,
+  endTimeValue,
+) => {
   const startDate = parseDateKey(startDateKey);
   const endDate = parseDateKey(endDateKey);
+  const startTimeMinutes = toMinutes(startTimeValue);
+  const endTimeMinutes = toMinutes(endTimeValue);
 
-  if (!startDate || !endDate) {
+  if (!startDate || !endDate || startTimeMinutes < 0 || endTimeMinutes < 0) {
     return 0;
   }
 
-  return Math.max(
-    1,
-    Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000),
+  const startDateTime = new Date(startDate);
+  startDateTime.setHours(
+    Math.floor(startTimeMinutes / 60),
+    startTimeMinutes % 60,
+    0,
+    0,
   );
+
+  const endDateTime = new Date(endDate);
+  endDateTime.setHours(
+    Math.floor(endTimeMinutes / 60),
+    endTimeMinutes % 60,
+    0,
+    0,
+  );
+
+  const diffMinutes = Math.floor(
+    (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60),
+  );
+
+  return Math.max(0, diffMinutes);
 };
 
 const getBestPromotion = (promotions = []) => {
@@ -242,10 +266,11 @@ const formatCurrencyVnd = (value) => {
   }).format(amount);
 };
 
-const BookingCard = ({ car, promotions = [] }) => {
+const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
   const navigate = useNavigate();
   const originalPricePerDay =
     Number(car?.originalPricePerDay ?? car?.pricePerDay) || 0;
+  const pricePerHour = Number(car?.pricePerHour) || 0;
   const blockedDateKeys = useMemo(
     () => expandBusySlots(car?.busySlots || []),
     [car?.busySlots],
@@ -270,12 +295,68 @@ const BookingCard = ({ car, promotions = [] }) => {
     );
   }, [blockedDateKeySet, initialStartDate]);
 
+  const resolvedInitialSchedule = useMemo(() => {
+    const parsedPickupDate = parseDateKey(initialSchedule?.pickupDate);
+    const parsedReturnDate = parseDateKey(initialSchedule?.returnDate);
+
+    if (!parsedPickupDate || !parsedReturnDate) {
+      return {
+        pickupDate: initialStartDate,
+        returnDate: initialEndDate,
+        pickupTime: "10:00",
+        returnTime: "10:00",
+      };
+    }
+
+    const pickupDateKey = getDateKey(parsedPickupDate);
+    const returnDateKey = getDateKey(parsedReturnDate);
+
+    if (
+      !pickupDateKey ||
+      !returnDateKey ||
+      returnDateKey < pickupDateKey ||
+      blockedDateKeySet.has(pickupDateKey) ||
+      blockedDateKeySet.has(returnDateKey) ||
+      hasBlockedDateInRange(pickupDateKey, returnDateKey, blockedDateKeySet)
+    ) {
+      return {
+        pickupDate: initialStartDate,
+        returnDate: initialEndDate,
+        pickupTime: "10:00",
+        returnTime: "10:00",
+      };
+    }
+
+    return {
+      pickupDate: pickupDateKey,
+      returnDate: returnDateKey,
+      pickupTime: initialSchedule?.pickupTime || "10:00",
+      returnTime: initialSchedule?.returnTime || "10:00",
+    };
+  }, [
+    blockedDateKeySet,
+    initialEndDate,
+    initialSchedule?.pickupDate,
+    initialSchedule?.pickupTime,
+    initialSchedule?.returnDate,
+    initialSchedule?.returnTime,
+    initialStartDate,
+  ]);
+
   const [activePicker, setActivePicker] = useState("");
-  const [tripStartDate, setTripStartDate] = useState(initialStartDate);
-  const [tripEndDate, setTripEndDate] = useState(initialEndDate);
+  const [tripStartDate, setTripStartDate] = useState(
+    resolvedInitialSchedule.pickupDate,
+  );
+  const [tripEndDate, setTripEndDate] = useState(
+    resolvedInitialSchedule.returnDate,
+  );
   const [selectingDateField, setSelectingDateField] = useState("start");
-  const [tripStartTime, setTripStartTime] = useState("10:00");
-  const [tripEndTime, setTripEndTime] = useState("10:00");
+  const [tripStartTime, setTripStartTime] = useState(
+    resolvedInitialSchedule.pickupTime,
+  );
+  const [tripEndTime, setTripEndTime] = useState(
+    resolvedInitialSchedule.returnTime,
+  );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [voucherSearch, setVoucherSearch] = useState("");
@@ -289,6 +370,21 @@ const BookingCard = ({ car, promotions = [] }) => {
   );
   const [hasVoucherSelectionChanged, setHasVoucherSelectionChanged] =
     useState(false);
+
+  useEffect(() => {
+    setTripStartDate(resolvedInitialSchedule.pickupDate);
+    setTripEndDate(resolvedInitialSchedule.returnDate);
+    setTripStartTime(resolvedInitialSchedule.pickupTime);
+    setTripEndTime(resolvedInitialSchedule.returnTime);
+    setSelectingDateField("start");
+    setActivePicker("");
+  }, [
+    car?.id,
+    resolvedInitialSchedule.pickupDate,
+    resolvedInitialSchedule.pickupTime,
+    resolvedInitialSchedule.returnDate,
+    resolvedInitialSchedule.returnTime,
+  ]);
 
   useEffect(() => {
     if (
@@ -334,13 +430,40 @@ const BookingCard = ({ car, promotions = [] }) => {
   const discountedPricePerDay = Math.round(
     originalPricePerDay * ((100 - discountPercent) / 100),
   );
-  const rentalDays = getRentalDays(tripStartDate, tripEndDate);
-  const rentalSubtotal = discountedPricePerDay * rentalDays;
-  const originalSubtotal = originalPricePerDay * rentalDays;
+  const totalTripMinutes = getTripDurationInMinutes(
+    tripStartDate,
+    tripStartTime,
+    tripEndDate,
+    tripEndTime,
+  );
+
+  let dayUnits = Math.floor(totalTripMinutes / 1440);
+  let extraHourUnits = Math.ceil((totalTripMinutes % 1440) / 60);
+
+  if (totalTripMinutes > 0 && dayUnits === 0 && extraHourUnits === 0) {
+    dayUnits = 1;
+  }
+
+  if (extraHourUnits > 0 && pricePerHour <= 0) {
+    dayUnits += 1;
+    extraHourUnits = 0;
+  }
+
+  if (dayUnits === 0 && extraHourUnits === 0) {
+    dayUnits = 1;
+  }
+
+  const dayOriginalSubtotal = originalPricePerDay * dayUnits;
+  const hourlySubtotal = pricePerHour * extraHourUnits;
+  const originalSubtotal = dayOriginalSubtotal + hourlySubtotal;
+  const rentalSubtotal = Math.round(
+    originalSubtotal * ((100 - discountPercent) / 100),
+  );
   const discountAmount = Math.max(originalSubtotal - rentalSubtotal, 0);
   const hasDiscount = discountPercent > 0;
   const serviceFee = 0;
   const totalPrice = rentalSubtotal + serviceFee;
+  const tripDurationLabel = `${dayUnits} ngày + ${extraHourUnits} giờ`;
 
   const handleDateSelection = (_, dateValue) => {
     if (!dateValue || blockedDateKeySet.has(dateValue)) {
@@ -442,13 +565,13 @@ const BookingCard = ({ car, promotions = [] }) => {
         <div className="d-flex justify-content-between align-items-end mb-3">
           <div>
             <span className="fs-3 fw-bold">
-              {formatCurrencyVnd(discountedPricePerDay)}
+              {formatCurrencyVnd(rentalSubtotal)}
             </span>
-            <span className="text-muted"> / ngày</span>
+            <span className="text-muted"> / {tripDurationLabel}</span>
           </div>
           {hasDiscount ? (
             <small className="text-decoration-line-through text-muted">
-              {formatCurrencyVnd(originalPricePerDay)}
+              {formatCurrencyVnd(originalSubtotal)}
             </small>
           ) : null}
         </div>
@@ -551,9 +674,16 @@ const BookingCard = ({ car, promotions = [] }) => {
         </div>
 
         <div className="d-flex justify-content-between small mb-1">
-          <span>Giá thuê ({rentalDays || 0} ngày)</span>
-          <span>{formatCurrencyVnd(originalSubtotal)}</span>
+          <span>Giá theo ngày ({dayUnits} ngày)</span>
+          <span>{formatCurrencyVnd(dayOriginalSubtotal)}</span>
         </div>
+
+        {extraHourUnits > 0 ? (
+          <div className="d-flex justify-content-between small mb-1">
+            <span>Giá theo giờ ({extraHourUnits} giờ)</span>
+            <span>{formatCurrencyVnd(hourlySubtotal)}</span>
+          </div>
+        ) : null}
 
         {hasDiscount ? (
           <div className="d-flex justify-content-between small mb-1 text-success">

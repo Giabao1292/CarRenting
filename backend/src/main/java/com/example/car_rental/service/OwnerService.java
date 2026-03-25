@@ -5,6 +5,8 @@ import com.example.car_rental.dto.request.OwnerRegisterDTO;
 import com.example.car_rental.dto.response.AdminOwnerDetailResponse;
 import com.example.car_rental.dto.response.AdminOwnerResponse;
 import com.example.car_rental.dto.response.AdminOwnerSummaryResponse;
+import com.example.car_rental.dto.request.TimeOwnerRequestDTO;
+import com.example.car_rental.dto.response.TimeOwnerResponseDTO;
 import com.example.car_rental.model.OwnerProfile;
 import com.example.car_rental.model.User;
 import com.example.car_rental.repository.OwnerRepository;
@@ -184,6 +186,23 @@ public class OwnerService {
                 .createdAt(ownerProfile.getCreatedAt())
                 .updatedAt(ownerProfile.getUpdatedAt())
                 .build();
+    }
+    public void updateTime(String userEmail, TimeOwnerRequestDTO timeOwnerRequestDTO) {
+        User user = userService.findByEmail(userEmail);
+        OwnerProfile ownerProfile = user.getOwnerProfile();
+        ownerProfile.setOpenTime(timeOwnerRequestDTO.getOpen());
+        ownerProfile.setCloseTime(timeOwnerRequestDTO.getClose());
+        ownerProfile.setUpdatedAt(LocalDateTime.now());
+        ownerRepository.save(ownerProfile);
+    }
+    public TimeOwnerResponseDTO getTime(String userEmail) {
+        User user = userService.findByEmail(userEmail);
+        OwnerProfile ownerProfile = user.getOwnerProfile();
+        TimeOwnerResponseDTO timeOwnerResponseDTO = new TimeOwnerResponseDTO();
+        timeOwnerResponseDTO.setOpen(ownerProfile.getOpenTime());
+        timeOwnerResponseDTO.setClose(ownerProfile.getCloseTime());
+        return timeOwnerResponseDTO;
+
     }
 }
 

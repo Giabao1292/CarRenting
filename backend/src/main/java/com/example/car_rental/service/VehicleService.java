@@ -12,11 +12,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
+
 public interface VehicleService {
 
     PageResponse<VehicleSummaryDTO> getCars(Pageable pageable, String userEmail, String... search);
 
     VehicleDetailDTO getCarDetail(Integer id);
+
+
+    List<VehicleSummaryDTO> getCarsByOwner(String userEmail);
+
+    void updateCarStatus(Integer id, String status, String userEmail);
 
     AdminCarSummaryResponse getAdminCarSummary();
 
@@ -31,4 +38,5 @@ public interface VehicleService {
     void adminApproveCar(Integer id);
 
     void adminRejectCar(Integer id, AdminRejectCarRequest request);
+
 }

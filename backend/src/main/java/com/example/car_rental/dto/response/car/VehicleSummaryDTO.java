@@ -17,10 +17,10 @@ public class VehicleSummaryDTO {
     private String name;           // "Kia Seltos 2024"
     private String location;           // "Thành Phố Thủ Đức"
     private BigDecimal pricePerDay;        // 920K
-    private BigDecimal originalPricePerDay;// 1100K (giá gốc bị gạch)
-    private Integer discountPercent;       // 17 (%)
+    private BigDecimal pricePerHour;
     private Integer seats;         // 5
     private String transmission;   // "Số tự động"
     private String imageUrl;
     private Double rating;
+    private String status;
 }
