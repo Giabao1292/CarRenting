@@ -65,8 +65,13 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + request.getVehicleId()));
 
-        Location pickupLocation = resolveLocation(request.getPickupLocationId(), vehicle.getDefaultLocation());
-        Location dropoffLocation = resolveLocation(request.getDropoffLocationId(), vehicle.getDefaultLocation());
+        Location createdCheckoutLocation = createCheckoutLocationIfPresent(request);
+        Location pickupLocation = createdCheckoutLocation != null
+                ? createdCheckoutLocation
+                : resolveLocation(request.getPickupLocationId(), vehicle.getDefaultLocation());
+        Location dropoffLocation = createdCheckoutLocation != null
+                ? createdCheckoutLocation
+                : resolveLocation(request.getDropoffLocationId(), vehicle.getDefaultLocation());
 
         if (pickupLocation == null || dropoffLocation == null) {
             throw new IllegalArgumentException("Cannot resolve pickup/dropoff location for booking");
@@ -354,6 +359,66 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
         }
 
         return entityManager.find(Location.class, locationId);
+    }
+
+    private Location createCheckoutLocationIfPresent(CreateCheckoutSessionRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        String city = normalizeBlank(request.getLocationCity());
+        String address = normalizeBlank(request.getLocationAddress());
+
+        if (city == null && address == null) {
+            return null;
+        }
+
+        Location location = new Location();
+        location.setName(buildLocationName(city, address));
+        location.setCity(city);
+        location.setAddress(address);
+        location.setCountry("VN");
+
+        if (isValidCoordinate(request.getLocationLat(), -90, 90)) {
+            location.setLat(request.getLocationLat());
+        }
+
+        if (isValidCoordinate(request.getLocationLng(), -180, 180)) {
+            location.setLng(request.getLocationLng());
+        }
+
+        Instant now = Instant.now();
+        location.setCreatedAt(now);
+        location.setUpdatedAt(now);
+        entityManager.persist(location);
+
+        return location;
+    }
+
+    private String buildLocationName(String city, String address) {
+        if (city != null && address != null) {
+            return (city + " - " + address).substring(0, Math.min(200, city.length() + address.length() + 3));
+        }
+
+        String base = city != null ? city : address;
+        if (base == null || base.isBlank()) {
+            return "Pickup & Return";
+        }
+
+        return base.length() > 200 ? base.substring(0, 200) : base;
+    }
+
+    private String normalizeBlank(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value.trim();
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    private boolean isValidCoordinate(Double value, double min, double max) {
+        return value != null && !value.isNaN() && !value.isInfinite() && value >= min && value <= max;
     }
 
     private String normalizeCurrency(String currency) {

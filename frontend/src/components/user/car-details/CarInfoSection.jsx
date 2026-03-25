@@ -240,7 +240,7 @@ const CarInfoSection = ({ car }) => {
         ) : null}
       </section>
 
-      <section>
+      <section id="reviews">
         <div className="d-flex align-items-center gap-2 mb-3">
           <h3 className="h5 fw-bold mb-0">Reviews</h3>
           <Badge
