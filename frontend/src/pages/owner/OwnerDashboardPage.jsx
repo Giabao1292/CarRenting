@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { APP_ROUTES } from "../../app/routes";
 import ConfirmActionModal from "../../components/common/ConfirmActionModal";
 import BookingRequestCard from "../../components/owner/dashboard/BookingRequestCard";
 import EarningsTable from "../../components/owner/dashboard/EarningsTable";
@@ -75,12 +77,8 @@ const mapCars = (cars = []) =>
 
 const mapBookings = (bookings = []) =>
   bookings.map((booking, index) => ({
-    id: `${booking.bookingId || "booking"}-${index}`,
-    bookingId: booking.bookingId,
-    customerEmail: booking.customerEmail || "Khách hàng",
-    pickupAt: formatDateTime(booking.pickupAt),
-    dropoffAt: formatDateTime(booking.dropoffAt),
-    totalAmount: formatCurrencyVnd(booking.totalAmount),
+    id: `${booking.vehicleId || booking.bookingId || "vehicle"}-${index}`,
+    vehicleId: booking.vehicleId,
     status: normalizeStatus(booking.status),
     vehicleName: booking.vehicleName || "Chưa rõ xe",
     imageUrl: booking.imageUrl || "",
@@ -218,13 +216,17 @@ const OwnerDashboardPage = () => {
     [cars.length, statusCounts],
   );
 
-  const pendingBookings = useMemo(() => {
-    return bookings.filter((booking) => booking.status === "pending");
-  }, [bookings]);
+  const bookingSectionCars = useMemo(() => bookings, [bookings]);
 
   const earningsRows = useMemo(() => {
     return bookings
-      .filter((booking) => booking.status !== "pending")
+      .filter(
+        (booking) =>
+          booking.status !== "pending" &&
+          booking.pickupAt &&
+          booking.dropoffAt &&
+          booking.totalAmount,
+      )
       .slice(0, 7)
       .map((booking) => ({
         id: booking.id,
@@ -437,19 +439,26 @@ const OwnerDashboardPage = () => {
       <Row className="g-4">
         <Col xl={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-bold mb-0">Booking Requests (Pending)</h5>
+            <h5 className="fw-bold mb-0">Danh sách xe của bạn</h5>
             <a href="#" className="text-success fw-bold small">
-              View All
+              Xem tất cả
             </a>
           </div>
           <div className="d-grid gap-3">
-            {pendingBookings.length ? (
-              pendingBookings.map((request) => (
-                <BookingRequestCard key={request.id} request={request} />
+            {bookingSectionCars.length ? (
+              bookingSectionCars.map((request) => (
+                <BookingRequestCard
+                  key={request.id}
+                  request={request}
+                  manageHref={APP_ROUTES.OWNER_CAR_MANAGE.replace(
+                    ":id",
+                    String(request.vehicleId || ""),
+                  )}
+                />
               ))
             ) : (
               <Alert variant="light" className="mb-0">
-                Hiện chưa có yêu cầu đặt xe mới.
+                Chưa có xe trong danh sách của bạn.
               </Alert>
             )}
           </div>
@@ -531,7 +540,12 @@ const OwnerDashboardPage = () => {
                 Chưa có xe trong danh sách của bạn.
               </Alert>
             )}
-            <Button variant="light" className="fw-bold border border-dashed">
+            <Button
+              as={Link}
+              to={APP_ROUTES.OWNER_ADD_CAR}
+              variant="light"
+              className="fw-bold border border-dashed"
+            >
               <span className="material-symbols-outlined align-middle me-1">
                 add
               </span>
