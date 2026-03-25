@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import authService from "../../services/authService";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VERIFY_TOKEN_LENGTH = 6;
 
 const AuthModal = ({
   show,
@@ -20,20 +21,44 @@ const AuthModal = ({
   const [loginValues, setLoginValues] = useState({ email: "", password: "" });
   const [registerValues, setRegisterValues] = useState({
     email: "",
-    displayName: "",
+    fullName: "",
+    dateOfBirth: "",
     password: "",
     confirmPassword: "",
-    referralCode: "",
-    agreed: true,
   });
+  const [verifyDigits, setVerifyDigits] = useState(
+    Array(VERIFY_TOKEN_LENGTH).fill(""),
+  );
+  const [registerStep, setRegisterStep] = useState("form");
+  const verifyInputRefs = useRef([]);
 
   const [loginErrors, setLoginErrors] = useState({});
   const [registerErrors, setRegisterErrors] = useState({});
+  const [verifyErrors, setVerifyErrors] = useState({});
   const [loginServerError, setLoginServerError] = useState("");
+  const [registerServerError, setRegisterServerError] = useState("");
+  const [registerServerSuccess, setRegisterServerSuccess] = useState("");
+  const [verifyServerError, setVerifyServerError] = useState("");
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
-  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
+  const [isVerifySubmitting, setIsVerifySubmitting] = useState(false);
 
   const isLoginMode = useMemo(() => mode === "login", [mode]);
+  const verifyToken = useMemo(() => verifyDigits.join(""), [verifyDigits]);
+
+  useEffect(() => {
+    if (isLoginMode) {
+      return;
+    }
+
+    setRegisterStep("form");
+    setRegisterErrors({});
+    setVerifyErrors({});
+    setRegisterServerError("");
+    setRegisterServerSuccess("");
+    setVerifyServerError("");
+    setVerifyDigits(Array(VERIFY_TOKEN_LENGTH).fill(""));
+  }, [isLoginMode]);
 
   const validateLogin = () => {
     const nextErrors = {};
@@ -63,8 +88,12 @@ const AuthModal = ({
       nextErrors.email = "Email chưa đúng định dạng.";
     }
 
-    if (!registerValues.displayName.trim()) {
-      nextErrors.displayName = "Vui lòng nhập tên hiển thị.";
+    if (!registerValues.fullName.trim()) {
+      nextErrors.fullName = "Vui lòng nhập họ và tên.";
+    }
+
+    if (!registerValues.dateOfBirth) {
+      nextErrors.dateOfBirth = "Vui lòng chọn ngày sinh.";
     }
 
     if (!registerValues.password.trim()) {
@@ -79,11 +108,20 @@ const AuthModal = ({
       nextErrors.confirmPassword = "Mật khẩu nhập lại chưa khớp.";
     }
 
-    if (!registerValues.agreed) {
-      nextErrors.agreed = "Bạn cần đồng ý điều khoản để tiếp tục.";
+    setRegisterErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const validateVerify = () => {
+    const nextErrors = {};
+
+    if (!verifyToken.trim()) {
+      nextErrors.token = "Vui lòng nhập mã xác thực.";
+    } else if (verifyToken.trim().length !== VERIFY_TOKEN_LENGTH) {
+      nextErrors.token = "Mã xác thực không hợp lệ.";
     }
 
-    setRegisterErrors(nextErrors);
+    setVerifyErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -115,28 +153,151 @@ const AuthModal = ({
     }
   };
 
-  const handleSubmitRegister = (event) => {
+  const handleSubmitRegister = async (event) => {
     event.preventDefault();
-    validateRegister();
-  };
+    setRegisterServerError("");
+    setRegisterServerSuccess("");
 
-  const handleGoogleLogin = async () => {
-    setLoginServerError("");
+    if (!validateRegister()) {
+      return;
+    }
 
     try {
-      setIsGoogleSubmitting(true);
-      const loggedUser = await authService.loginWithGoogle();
-      onLoginSuccess?.(loggedUser);
+      setIsRegisterSubmitting(true);
+      const result = await authService.register({
+        email: registerValues.email.trim(),
+        password: registerValues.password,
+        fullName: registerValues.fullName.trim(),
+        dateOfBirth: registerValues.dateOfBirth,
+      });
+
+      setRegisterServerSuccess(
+        result.message ||
+          "Đăng ký thành công. Vui lòng kiểm tra email để lấy mã xác thực.",
+      );
+      setVerifyDigits(Array(VERIFY_TOKEN_LENGTH).fill(""));
+      setRegisterStep("verify");
+    } catch (error) {
+      const serverMessage =
+        error?.message || "Đăng ký thất bại, vui lòng thử lại.";
+      setRegisterServerError(serverMessage);
+    } finally {
+      setIsRegisterSubmitting(false);
+    }
+  };
+
+  const handleSubmitVerify = async (event) => {
+    event.preventDefault();
+    setVerifyServerError("");
+
+    if (!validateVerify()) {
+      return;
+    }
+
+    try {
+      setIsVerifySubmitting(true);
+      const loggedUser = await authService.verifyRegistration({
+        email: registerValues.email.trim(),
+        token: verifyToken.trim().toUpperCase(),
+      });
+
+      onLoginSuccess?.({
+        ...loggedUser,
+        name: registerValues.fullName.trim() || loggedUser.name,
+      });
       onHide();
     } catch (error) {
       const serverMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Đăng nhập Google thất bại, vui lòng thử lại.";
-      setLoginServerError(serverMessage);
+        error?.message || "Xác thực thất bại, vui lòng thử lại.";
+      setVerifyServerError(serverMessage);
     } finally {
-      setIsGoogleSubmitting(false);
+      setIsVerifySubmitting(false);
     }
+  };
+
+  const handleVerifyDigitChange = (index, rawValue) => {
+    const normalized = rawValue.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+    if (!normalized) {
+      setVerifyDigits((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+      return;
+    }
+
+    if (normalized.length > 1) {
+      setVerifyDigits((prev) => {
+        const next = [...prev];
+        for (let i = 0; i < normalized.length; i += 1) {
+          const targetIndex = index + i;
+          if (targetIndex >= VERIFY_TOKEN_LENGTH) {
+            break;
+          }
+          next[targetIndex] = normalized[i];
+        }
+        return next;
+      });
+      const focusIndex = Math.min(
+        index + normalized.length,
+        VERIFY_TOKEN_LENGTH - 1,
+      );
+      verifyInputRefs.current[focusIndex]?.focus();
+      verifyInputRefs.current[focusIndex]?.select();
+      return;
+    }
+
+    setVerifyDigits((prev) => {
+      const next = [...prev];
+      next[index] = normalized;
+      return next;
+    });
+    if (index < VERIFY_TOKEN_LENGTH - 1) {
+      verifyInputRefs.current[index + 1]?.focus();
+      verifyInputRefs.current[index + 1]?.select();
+    }
+  };
+
+  const handleVerifyDigitKeyDown = (index, event) => {
+    if (event.key === "Backspace" && !verifyDigits[index] && index > 0) {
+      verifyInputRefs.current[index - 1]?.focus();
+      return;
+    }
+
+    if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      verifyInputRefs.current[index - 1]?.focus();
+      return;
+    }
+
+    if (event.key === "ArrowRight" && index < VERIFY_TOKEN_LENGTH - 1) {
+      event.preventDefault();
+      verifyInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleVerifyPaste = (event) => {
+    event.preventDefault();
+    const pastedValue = event.clipboardData
+      .getData("text")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, VERIFY_TOKEN_LENGTH);
+
+    if (!pastedValue) {
+      return;
+    }
+
+    const next = Array(VERIFY_TOKEN_LENGTH).fill("");
+    pastedValue.split("").forEach((char, index) => {
+      next[index] = char;
+    });
+    setVerifyDigits(next);
+
+    const focusIndex = Math.min(pastedValue.length, VERIFY_TOKEN_LENGTH) - 1;
+    verifyInputRefs.current[focusIndex]?.focus();
+    verifyInputRefs.current[focusIndex]?.select();
   };
 
   return (
@@ -234,184 +395,233 @@ const AuthModal = ({
         ) : (
           <>
             <h3 className="auth-modal-title">Đăng ký</h3>
+            <div className="auth-register-step-badge">
+              {registerStep === "form"
+                ? "Bước 1/2 - Tạo tài khoản"
+                : "Bước 2/2 - Xác thực email"}
+            </div>
 
-            <Form onSubmit={handleSubmitRegister} noValidate>
-              <Form.Group className="mb-2" controlId="register-email">
-                <Form.Label className="auth-label">Email</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={registerValues.email}
-                  onChange={(event) =>
-                    setRegisterValues((prev) => ({
-                      ...prev,
-                      email: event.target.value,
-                    }))
-                  }
-                  isInvalid={Boolean(registerErrors.email)}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {registerErrors.email}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-2" controlId="register-display-name">
-                <Form.Label className="auth-label">Tên hiển thị</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={registerValues.displayName}
-                  onChange={(event) =>
-                    setRegisterValues((prev) => ({
-                      ...prev,
-                      displayName: event.target.value,
-                    }))
-                  }
-                  isInvalid={Boolean(registerErrors.displayName)}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {registerErrors.displayName}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-2" controlId="register-password">
-                <Form.Label className="auth-label">Mật khẩu</Form.Label>
-                <InputGroup>
+            {registerStep === "form" ? (
+              <Form onSubmit={handleSubmitRegister} noValidate>
+                <Form.Group className="mb-2" controlId="register-email">
+                  <Form.Label className="auth-label">Email</Form.Label>
                   <Form.Control
-                    type={showRegisterPassword ? "text" : "password"}
-                    value={registerValues.password}
+                    type="text"
+                    value={registerValues.email}
                     onChange={(event) =>
                       setRegisterValues((prev) => ({
                         ...prev,
-                        password: event.target.value,
+                        email: event.target.value,
                       }))
                     }
-                    isInvalid={Boolean(registerErrors.password)}
+                    isInvalid={Boolean(registerErrors.email)}
                   />
-                  <Button
-                    variant="light"
-                    className="auth-eye-btn"
-                    onClick={() => setShowRegisterPassword((prev) => !prev)}
-                  >
-                    <span className="material-symbols-outlined">
-                      {showRegisterPassword ? "visibility" : "visibility_off"}
-                    </span>
-                  </Button>
                   <Form.Control.Feedback type="invalid">
-                    {registerErrors.password}
+                    {registerErrors.email}
                   </Form.Control.Feedback>
-                </InputGroup>
-              </Form.Group>
+                </Form.Group>
 
-              <Form.Group
-                className="mb-2"
-                controlId="register-confirm-password"
-              >
-                <Form.Label className="auth-label">Mật khẩu</Form.Label>
-                <InputGroup>
+                <Form.Group className="mb-2" controlId="register-full-name">
+                  <Form.Label className="auth-label">Họ và tên</Form.Label>
                   <Form.Control
-                    type={showRegisterConfirmPassword ? "text" : "password"}
-                    value={registerValues.confirmPassword}
+                    type="text"
+                    value={registerValues.fullName}
                     onChange={(event) =>
                       setRegisterValues((prev) => ({
                         ...prev,
-                        confirmPassword: event.target.value,
+                        fullName: event.target.value,
                       }))
                     }
-                    isInvalid={Boolean(registerErrors.confirmPassword)}
+                    isInvalid={Boolean(registerErrors.fullName)}
                   />
-                  <Button
-                    variant="light"
-                    className="auth-eye-btn"
-                    onClick={() =>
-                      setShowRegisterConfirmPassword((prev) => !prev)
-                    }
-                  >
-                    <span className="material-symbols-outlined">
-                      {showRegisterConfirmPassword
-                        ? "visibility"
-                        : "visibility_off"}
-                    </span>
-                  </Button>
                   <Form.Control.Feedback type="invalid">
-                    {registerErrors.confirmPassword}
+                    {registerErrors.fullName}
                   </Form.Control.Feedback>
-                </InputGroup>
-              </Form.Group>
+                </Form.Group>
 
-              <Form.Group className="mb-2" controlId="register-referral-code">
-                <Form.Label className="auth-label">
-                  Mã giới thiệu (nếu có)
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  value={registerValues.referralCode}
-                  onChange={(event) =>
-                    setRegisterValues((prev) => ({
-                      ...prev,
-                      referralCode: event.target.value,
-                    }))
-                  }
-                />
-              </Form.Group>
+                <Form.Group className="mb-2" controlId="register-date-of-birth">
+                  <Form.Label className="auth-label">Ngày sinh</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={registerValues.dateOfBirth}
+                    onChange={(event) =>
+                      setRegisterValues((prev) => ({
+                        ...prev,
+                        dateOfBirth: event.target.value,
+                      }))
+                    }
+                    isInvalid={Boolean(registerErrors.dateOfBirth)}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {registerErrors.dateOfBirth}
+                  </Form.Control.Feedback>
+                </Form.Group>
 
-              <Form.Group className="mb-3" controlId="register-agree">
-                <Form.Check
-                  type="checkbox"
-                  checked={registerValues.agreed}
-                  onChange={(event) =>
-                    setRegisterValues((prev) => ({
-                      ...prev,
-                      agreed: event.target.checked,
-                    }))
-                  }
-                  label={
-                    <span className="small text-muted">
-                      Tôi đã đọc và đồng ý với{" "}
-                      <span className="text-success">
-                        Chính sách & quy định
-                      </span>{" "}
-                      và{" "}
-                      <span className="text-success">
-                        Chính sách bảo vệ dữ liệu cá nhân
-                      </span>{" "}
-                      của Mioto.
-                    </span>
-                  }
-                  isInvalid={Boolean(registerErrors.agreed)}
-                />
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {registerErrors.agreed}
-                </Form.Control.Feedback>
-              </Form.Group>
+                <Form.Group className="mb-2" controlId="register-password">
+                  <Form.Label className="auth-label">Mật khẩu</Form.Label>
+                  <InputGroup>
+                    <Form.Control
+                      type={showRegisterPassword ? "text" : "password"}
+                      value={registerValues.password}
+                      onChange={(event) =>
+                        setRegisterValues((prev) => ({
+                          ...prev,
+                          password: event.target.value,
+                        }))
+                      }
+                      isInvalid={Boolean(registerErrors.password)}
+                    />
+                    <Button
+                      variant="light"
+                      className="auth-eye-btn"
+                      onClick={() => setShowRegisterPassword((prev) => !prev)}
+                    >
+                      <span className="material-symbols-outlined">
+                        {showRegisterPassword ? "visibility" : "visibility_off"}
+                      </span>
+                    </Button>
+                    <Form.Control.Feedback type="invalid">
+                      {registerErrors.password}
+                    </Form.Control.Feedback>
+                  </InputGroup>
+                </Form.Group>
 
-              <Button
-                type="submit"
-                className="btn-primary-custom w-100 auth-submit-btn"
-              >
-                Đăng ký
-              </Button>
-            </Form>
+                <Form.Group
+                  className="mb-2"
+                  controlId="register-confirm-password"
+                >
+                  <Form.Label className="auth-label">
+                    Nhập lại mật khẩu
+                  </Form.Label>
+                  <InputGroup>
+                    <Form.Control
+                      type={showRegisterConfirmPassword ? "text" : "password"}
+                      value={registerValues.confirmPassword}
+                      onChange={(event) =>
+                        setRegisterValues((prev) => ({
+                          ...prev,
+                          confirmPassword: event.target.value,
+                        }))
+                      }
+                      isInvalid={Boolean(registerErrors.confirmPassword)}
+                    />
+                    <Button
+                      variant="light"
+                      className="auth-eye-btn"
+                      onClick={() =>
+                        setShowRegisterConfirmPassword((prev) => !prev)
+                      }
+                    >
+                      <span className="material-symbols-outlined">
+                        {showRegisterConfirmPassword
+                          ? "visibility"
+                          : "visibility_off"}
+                      </span>
+                    </Button>
+                    <Form.Control.Feedback type="invalid">
+                      {registerErrors.confirmPassword}
+                    </Form.Control.Feedback>
+                  </InputGroup>
+                </Form.Group>
+
+                <Button
+                  type="submit"
+                  className="btn-primary-custom w-100 auth-submit-btn"
+                  disabled={isRegisterSubmitting}
+                >
+                  {isRegisterSubmitting ? "Đang đăng ký..." : "Tiếp tục"}
+                </Button>
+              </Form>
+            ) : (
+              <Form onSubmit={handleSubmitVerify} noValidate>
+                <p className="auth-verify-description">
+                  Mã xác thực đã được gửi tới email của bạn. Vui lòng nhập mã để
+                  kích hoạt tài khoản.
+                </p>
+
+                <Form.Group className="mb-2" controlId="verify-token">
+                  <Form.Label className="auth-label">Mã xác thực</Form.Label>
+                  <div
+                    className="auth-verify-code-grid"
+                    onPaste={handleVerifyPaste}
+                  >
+                    {verifyDigits.map((digit, index) => (
+                      <Form.Control
+                        key={`verify-digit-${index}`}
+                        type="text"
+                        inputMode="text"
+                        maxLength={1}
+                        value={digit}
+                        ref={(element) => {
+                          verifyInputRefs.current[index] = element;
+                        }}
+                        className="auth-verify-code-input"
+                        onChange={(event) =>
+                          handleVerifyDigitChange(index, event.target.value)
+                        }
+                        onKeyDown={(event) =>
+                          handleVerifyDigitKeyDown(index, event)
+                        }
+                        isInvalid={Boolean(verifyErrors.token)}
+                        aria-label={`Mã xác thực ký tự ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <Form.Control.Feedback type="invalid">
+                    {verifyErrors.token}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <div className="d-flex gap-2 mt-3">
+                  <Button
+                    type="button"
+                    variant="light"
+                    className="w-50 auth-back-btn"
+                    onClick={() => {
+                      setVerifyErrors({});
+                      setVerifyServerError("");
+                      setVerifyDigits(Array(VERIFY_TOKEN_LENGTH).fill(""));
+                      setRegisterStep("form");
+                    }}
+                    disabled={isVerifySubmitting}
+                  >
+                    Quay lại
+                  </Button>
+
+                  <Button
+                    type="submit"
+                    className="btn-primary-custom w-50 auth-submit-btn mt-0"
+                    disabled={isVerifySubmitting}
+                  >
+                    {isVerifySubmitting ? "Đang xác thực..." : "Xác thực"}
+                  </Button>
+                </div>
+              </Form>
+            )}
           </>
         )}
 
-        <div className="auth-social-row">
-          <button type="button" className="auth-social-btn">
-            <span className="auth-social-facebook">f</span>
-            Facebook
-          </button>
-          <button
-            type="button"
-            className="auth-social-btn"
-            onClick={handleGoogleLogin}
-            disabled={isGoogleSubmitting || isLoginSubmitting}
-          >
-            <span className="auth-social-google">G</span>
-            {isGoogleSubmitting ? "Đang đăng nhập..." : "Google"}
-          </button>
-        </div>
-
-        {loginServerError && (
+        {isLoginMode && loginServerError && (
           <div className="text-danger small text-center mt-2">
             {loginServerError}
+          </div>
+        )}
+
+        {!isLoginMode && registerServerSuccess && (
+          <div className="text-success small text-center mt-2">
+            {registerServerSuccess}
+          </div>
+        )}
+
+        {!isLoginMode && registerServerError && (
+          <div className="text-danger small text-center mt-2">
+            {registerServerError}
+          </div>
+        )}
+
+        {!isLoginMode && verifyServerError && (
+          <div className="text-danger small text-center mt-2">
+            {verifyServerError}
           </div>
         )}
       </Modal.Body>

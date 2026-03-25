@@ -103,6 +103,9 @@ public class User implements UserDetails{
     @OneToOne(mappedBy = "user")
     private OwnerProfile ownerProfile;
 
+    @OneToMany(mappedBy = "ownerUser")
+    private Set<BankAccount> bankAccounts = new LinkedHashSet<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Set.of(new SimpleGrantedAuthority("ROLE_" + role));
