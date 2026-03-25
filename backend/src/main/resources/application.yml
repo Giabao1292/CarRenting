@@ -36,7 +36,6 @@ spring:
       ddl-auto: none
     show-sql: true
 
-
 jwt:
   limit:
     day: 15
@@ -50,10 +49,13 @@ cloudinary:
 logging:
   level:
     org:
-        hibernate:
-          SQL: debug
-          orm:
-            jdbc:
-              bind: TRACE
+      hibernate:
+        SQL: debug
+        orm:
+          jdbc:
+            bind: TRACE
 stripe:
   secret-key: sk_test_51ReQxuGgt8YZtkKb4Xnt6UifVmfKzPREblewKu09HPVHWKDxKgWagIBfZS8SjsF6eOvEd5yMelP6zzvAnVTHWenT00KPqBFgVD
+  webhook-secret: whsec_294f42150c990f2569703896a1c969adb3ef7176799decfc91a835b373def8f1
+  success-url: http://localhost:5173/payment/success
+  cancel-url: http://localhost:5173/payment/cancel

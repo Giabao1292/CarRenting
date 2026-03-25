@@ -1,6 +1,9 @@
 import { Badge, Button, Card } from "react-bootstrap";
 
-const SuccessSummaryCard = ({ data }) => {
+const SuccessSummaryCard = ({ data, actionLabel = "View My Booking" }) => {
+  const summary = data?.summary || {};
+  const car = data?.car || {};
+
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
       <div className="p-4 border-bottom">
@@ -9,7 +12,7 @@ const SuccessSummaryCard = ({ data }) => {
           <div
             style={{
               height: 180,
-              backgroundImage: `url(${data.car.image})`,
+              backgroundImage: `url(${car.image || ""})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -17,8 +20,8 @@ const SuccessSummaryCard = ({ data }) => {
           <div className="p-3 bg-white">
             <div className="d-flex justify-content-between align-items-start">
               <div>
-                <strong>{data.car.name}</strong>
-                <div className="small text-muted">{data.car.subtitle}</div>
+                <strong>{car.name || "Chuyến xe của bạn"}</strong>
+                <div className="small text-muted">{car.subtitle || ""}</div>
               </div>
               <Badge
                 bg="light"
@@ -31,7 +34,7 @@ const SuccessSummaryCard = ({ data }) => {
                 >
                   star
                 </span>
-                {data.car.rating}
+                {car.rating || "--"}
               </Badge>
             </div>
           </div>
@@ -42,26 +45,26 @@ const SuccessSummaryCard = ({ data }) => {
         <div className="d-grid gap-3 small">
           <div className="d-flex justify-content-between border-bottom pb-2">
             <span className="text-muted">Pick-up Date</span>
-            <strong>{data.summary.pickupDate}</strong>
+            <strong>{summary.pickupDate || "--"}</strong>
           </div>
           <div className="d-flex justify-content-between border-bottom pb-2">
             <span className="text-muted">Return Date</span>
-            <strong>{data.summary.returnDate}</strong>
+            <strong>{summary.returnDate || "--"}</strong>
           </div>
           <div className="d-flex justify-content-between border-bottom pb-2">
             <span className="text-muted">Pickup Location</span>
-            <strong>{data.summary.location}</strong>
+            <strong>{summary.location || "--"}</strong>
           </div>
           <div className="d-flex justify-content-between fs-5">
             <span className="fw-semibold">Total Price</span>
-            <strong>{data.summary.total}</strong>
+            <strong>{summary.total || "--"}</strong>
           </div>
         </div>
       </Card.Body>
 
       <div className="px-3 pb-3">
         <Button className="w-100 btn-primary-custom fw-bold">
-          View My Booking
+          {actionLabel}
         </Button>
       </div>
     </Card>

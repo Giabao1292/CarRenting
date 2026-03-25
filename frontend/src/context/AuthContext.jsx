@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useCallback,
@@ -12,7 +13,7 @@ import {
   saveAuthUser,
 } from "../utils/storage";
 
-export const DEFAULT_AVATAR_URL =
+const DEFAULT_AVATAR_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDUH5FECen9HBkeywYTdApXoqJduBgRCpdOKWdAXLgutFlXlxWAP1Oyd7a4RyO-ZkkRN0o4Bc4k3WPUVkKVzG3iNNDjOg7r_vCKPWSpHjLbWBv0oyv4iTeK2UbDh5nE2RuvXhWOxmI73xmUgAbk6FKtlYsirHQhIyaBer1luP34d7-0OrGFyGCYFwm4y3e33k1qnJoCZfXy1MKqbMNulM2Wz4Do4kziw1KkdluzkLTtyOeT-4A2tc4jJ0DKCYMn7YRU0AxyuKnxfTs";
 
 const resolveAvatar = (avatar) => {
@@ -31,6 +32,7 @@ export const AuthProvider = ({ children }) => {
     if (!storedUser) return null;
 
     return {
+      fullName: storedUser.fullName || storedUser.name,
       name: storedUser.name,
       email: storedUser.email,
       role: storedUser.role,
@@ -39,14 +41,18 @@ export const AuthProvider = ({ children }) => {
   });
 
   const loginUser = (loggedUser) => {
+    const resolvedEmail = loggedUser?.email || "";
+    const resolvedFullName =
+      loggedUser?.fullName ||
+      loggedUser?.name ||
+      loggedUser?.displayName ||
+      resolvedEmail ||
+      "Người dùng";
+
     const nextAuthUser = {
-      name:
-        loggedUser?.name ||
-        loggedUser?.fullName ||
-        loggedUser?.displayName ||
-        loggedUser?.email ||
-        "Người dùng",
-      email: loggedUser?.email || "",
+      fullName: resolvedFullName,
+      name: resolvedFullName,
+      email: resolvedEmail,
       role: loggedUser?.role || "",
       avatar: resolveAvatar(loggedUser?.avatar),
     };

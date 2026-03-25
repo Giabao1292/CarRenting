@@ -280,6 +280,62 @@ a {
   margin: 0.4rem 0 0.65rem;
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.auth-divider span {
+  padding: 0 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-google-btn {
+  min-height: 50px;
+  border-radius: 10px;
+  border: 1px solid #dbe4ee;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auth-google-btn:hover,
+.auth-google-btn:focus {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.auth-google-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #dbe4ee;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ea4335;
+  background: #ffffff;
+}
+
 .auth-switch-text {
   text-align: center;
   font-size: 0.95rem;
@@ -2129,6 +2185,47 @@ button:disabled,
   color: #166534;
 }
 
+.profile-my-trips-hero {
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(94, 195, 163, 0.2),
+      transparent 36%
+    ),
+    linear-gradient(135deg, #f8fffb 0%, #eef7ff 100%);
+}
+
+.profile-my-trips-count {
+  min-width: 130px;
+  min-height: 88px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #d9e6df;
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.05);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 14px;
+}
+
+.profile-my-trips-count-number {
+  line-height: 1;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.profile-my-trips-count-label {
+  line-height: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .dashboard-top-actions .input-group {
   min-width: 260px;
 }
@@ -2191,6 +2288,15 @@ button:disabled,
 
   .profile-points-chip-label {
     font-size: 0.92rem;
+  }
+
+  .profile-my-trips-count {
+    min-height: 74px;
+    min-width: 114px;
+  }
+
+  .profile-my-trips-count-number {
+    font-size: 1.6rem;
   }
 
   .dashboard-sidebar-card {

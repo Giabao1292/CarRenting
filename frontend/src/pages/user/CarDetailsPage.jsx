@@ -455,6 +455,9 @@ const CarDetailsPage = () => {
 
     const pickup = parseDateTimeValue(pickupAt);
     const dropoff = parseDateTimeValue(dropoffAt);
+    const rawBookingId = Number(searchParams.get("bookingId") || 0);
+    const bookingId =
+      Number.isFinite(rawBookingId) && rawBookingId > 0 ? rawBookingId : null;
 
     if (!pickup || !dropoff) {
       return null;
@@ -472,6 +475,7 @@ const CarDetailsPage = () => {
     }
 
     return {
+      bookingId,
       pickupDate: pickup.date,
       pickupTime: pickup.time,
       returnDate: dropoff.date,

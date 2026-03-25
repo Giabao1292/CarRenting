@@ -20,4 +20,32 @@ export const profileData = {
     fullName: "",
     birthDate: "01/01/1970",
   },
+  trips: [
+    {
+      id: 1,
+      status: "Sắp diễn ra",
+      statusKey: "upcoming",
+      name: "Toyota Vios 1.5G",
+      category: "Sedan",
+      dates: "27/03/2026 - 29/03/2026",
+      location: "Quận 1, TP.HCM",
+      access: "Nhận xe tự động bằng app",
+      price: "1.800.000đ",
+      image:
+        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: 2,
+      status: "Hoàn thành",
+      statusKey: "completed",
+      name: "Mazda CX-5 Premium",
+      category: "SUV",
+      dates: "15/03/2026 - 17/03/2026",
+      location: "Thành phố Thủ Đức",
+      access: "Giao xe tận nơi",
+      price: "2.450.000đ",
+      image:
+        "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80",
+    },
+  ],
 };

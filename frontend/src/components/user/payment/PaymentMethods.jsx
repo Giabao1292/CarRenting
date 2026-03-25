@@ -1,6 +1,12 @@
 import { Card, Form } from "react-bootstrap";
 
-const PaymentMethods = ({ pageTitle, secureText, methods }) => {
+const PaymentMethods = ({
+  pageTitle,
+  secureText,
+  methods,
+  selectedMethod,
+  onSelectMethod,
+}) => {
   return (
     <div className="d-flex flex-column gap-4">
       <div>
@@ -25,7 +31,8 @@ const PaymentMethods = ({ pageTitle, secureText, methods }) => {
                 <Form.Check
                   type="radio"
                   name="payment_method"
-                  defaultChecked={method.defaultChecked}
+                  checked={selectedMethod === method.id}
+                  onChange={() => onSelectMethod?.(method.id)}
                   className="mb-0"
                 />
                 <div className="flex-grow-1">
@@ -49,6 +56,7 @@ const PaymentMethods = ({ pageTitle, secureText, methods }) => {
         <Card.Body className="p-3 p-lg-4">
           <Form.Check
             type="checkbox"
+            defaultChecked
             label={
               <small className="text-muted d-block lh-base">
                 I agree to the <a href="#">Terms of Service</a> and acknowledge

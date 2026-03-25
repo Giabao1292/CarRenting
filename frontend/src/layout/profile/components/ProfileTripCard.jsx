@@ -1,7 +1,14 @@
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 
 const ProfileTripCard = ({ trip }) => {
-  const isConfirmed = trip.status.toLowerCase() === "confirmed";
+  const statusKey = String(trip.statusKey || "upcoming").toLowerCase();
+  const isUpcoming = statusKey === "upcoming";
+  const isCompleted = statusKey === "completed";
+  const badgeVariant = isCompleted
+    ? "success"
+    : isUpcoming
+      ? "primary"
+      : "warning";
 
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden card-hover">
@@ -22,8 +29,8 @@ const ProfileTripCard = ({ trip }) => {
           <Card.Body className="p-4">
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
               <Badge
-                bg={isConfirmed ? "success" : "warning"}
-                text={isConfirmed ? undefined : "dark"}
+                bg={badgeVariant}
+                text={badgeVariant === "warning" ? "dark" : undefined}
                 className="px-3 py-2"
               >
                 {trip.status}
@@ -70,10 +77,10 @@ const ProfileTripCard = ({ trip }) => {
 
             <div className="d-flex flex-wrap gap-2">
               <Button className="btn-primary-custom fw-bold px-4">
-                View Trip
+                Xem chi tiết chuyến
               </Button>
               <Button variant="outline-secondary" className="fw-semibold">
-                Contact Host
+                Liên hệ chủ xe
               </Button>
             </div>
           </Card.Body>

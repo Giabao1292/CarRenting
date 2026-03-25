@@ -99,4 +99,5 @@ public class BookingController {
         List<OwnerBookingRequestResponse> bookingResponses =  bookingService.getBookingRequest(authentication.getName());
         return new ResponseData<>(200, "Get booking requests successfully", bookingResponses);
     }
+
 }
