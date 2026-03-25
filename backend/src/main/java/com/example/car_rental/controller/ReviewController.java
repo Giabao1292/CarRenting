@@ -2,6 +2,7 @@ package com.example.car_rental.controller;
 
 import com.example.car_rental.dto.response.AdminReviewDetailResponse;
 import com.example.car_rental.dto.response.AdminReviewResponse;
+import com.example.car_rental.dto.response.ResponseData;
 import com.example.car_rental.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,24 +18,26 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("/admin")
-    public Page<AdminReviewResponse> getReviews(
+    public ResponseData<Page<AdminReviewResponse>> getReviews(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Short rating,
             @RequestParam(required = false) Integer vehicleId
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return reviewService.getReviews(rating, vehicleId, pageable);
+        Page<AdminReviewResponse> response = reviewService.getReviews(rating, vehicleId, pageable);
+        return new ResponseData<>(200, "Get reviews successfully", response);
     }
 
     @GetMapping("/admin/{id}")
-    public AdminReviewDetailResponse getReviewDetail(@PathVariable Integer id) {
-        return reviewService.getReviewDetail(id);
+    public ResponseData<AdminReviewDetailResponse> getReviewDetail(@PathVariable Integer id) {
+        AdminReviewDetailResponse response = reviewService.getReviewDetail(id);
+        return new ResponseData<>(200, "Get review detail successfully", response);
     }
 
     @DeleteMapping("/admin/{id}")
-    public String deleteReview(@PathVariable Integer id) {
+    public ResponseData<String> deleteReview(@PathVariable Integer id) {
         reviewService.deleteReview(id);
-        return "Delete review successfully";
+        return new ResponseData<>(200, "Delete review successfully");
     }
 }

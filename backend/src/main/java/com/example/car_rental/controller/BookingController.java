@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -19,7 +18,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @GetMapping("/admin")
-    public Page<AdminBookingResponse> getBookings(
+    public ResponseData<Page<AdminBookingResponse>> getBookings(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Integer locationId,
@@ -30,62 +29,67 @@ public class BookingController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return bookingService.getBookings(
+        Page<AdminBookingResponse> response = bookingService.getBookings(
                 status, email, locationId, fromDate, toDate, page, size
         );
+        return new ResponseData<>(200, "Get bookings successfully", response);
     }
 
     @GetMapping("/admin/{id}")
-    public AdminBookingDetailResponse getBookingDetail(@PathVariable Integer id) {
-        return bookingService.getBookingDetail(id);
+    public ResponseData<AdminBookingDetailResponse> getBookingDetail(@PathVariable Integer id) {
+        AdminBookingDetailResponse response = bookingService.getBookingDetail(id);
+        return new ResponseData<>(200, "Get booking detail successfully", response);
     }
 
     @PutMapping("/admin/{id}/complete")
-    public Map<String, Object> completeBooking(@PathVariable Integer id) {
+    public ResponseData<String> completeBooking(@PathVariable Integer id) {
         bookingService.completeBooking(id);
-        return Map.of(
-                "message", "Booking completed successfully",
-                "bookingId", id,
-                "status", "completed"
-        );
+        return new ResponseData<>(200, "Complete booking successfully");
     }
 
     @GetMapping("/admin/stats/count")
-    public List<BookingCountStatsResponse> getBookingCountStats(
+    public ResponseData<List<BookingCountStatsResponse>> getBookingCountStats(
             @RequestParam(defaultValue = "month") String groupBy,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return bookingService.getBookingCountStats(groupBy, fromDate, toDate);
+        List<BookingCountStatsResponse> response =
+                bookingService.getBookingCountStats(groupBy, fromDate, toDate);
+        return new ResponseData<>(200, "Get booking count statistics successfully", response);
     }
 
     @GetMapping("/admin/stats/revenue")
-    public List<BookingRevenueStatsResponse> getRevenueStats(
+    public ResponseData<List<BookingRevenueStatsResponse>> getRevenueStats(
             @RequestParam(defaultValue = "month") String groupBy,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return bookingService.getRevenueStats(groupBy, fromDate, toDate);
+        List<BookingRevenueStatsResponse> response =
+                bookingService.getRevenueStats(groupBy, fromDate, toDate);
+        return new ResponseData<>(200, "Get booking revenue statistics successfully", response);
     }
 
     @GetMapping("/admin/stats/status")
-    public List<BookingStatusStatsResponse> getBookingStatusStats(
+    public ResponseData<List<BookingStatusStatsResponse>> getBookingStatusStats(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return bookingService.getBookingStatusStats(fromDate, toDate);
+        List<BookingStatusStatsResponse> response =
+                bookingService.getBookingStatusStats(fromDate, toDate);
+        return new ResponseData<>(200, "Get booking status statistics successfully", response);
     }
 
     @GetMapping("/admin/stats/top")
-    public List<TopBookedVehicleResponse> getTopBookedVehicles(
+    public ResponseData<List<TopBookedVehicleResponse>> getTopBookedVehicles(
             @RequestParam(defaultValue = "5") int limit
     ) {
-        return bookingService.getTopBookedVehicles(limit);
+        List<TopBookedVehicleResponse> response = bookingService.getTopBookedVehicles(limit);
+        return new ResponseData<>(200, "Get top booked vehicles successfully", response);
     }
 }
