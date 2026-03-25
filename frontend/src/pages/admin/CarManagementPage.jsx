@@ -209,13 +209,14 @@ const normalizeStatus = (status) => (status || "UNKNOWN").toUpperCase();
 const getStatusLabel = (status) => {
   const normalized = normalizeStatus(status);
 
-  if (normalized === "AVAILABLE") return "Available";
-  if (normalized === "PENDING") return "Pending";
-  if (normalized === "REJECTED") return "Rejected";
+  if (normalized === "AVAILABLE") return "Sẵn sàng";
+  if (normalized === "PENDING") return "Chờ duyệt";
+  if (normalized === "REJECTED") return "Từ chối";
+  if (normalized === "INACTIVE") return "Ngừng hoạt động";
   if (["UNAVAILABLE", "RENTED", "BOOKED"].includes(normalized)) {
-    return "Unavailable";
+    return "Không khả dụng";
   }
-  if (normalized === "REMOVED") return "Removed";
+  if (normalized === "REMOVED") return "Đã gỡ";
 
   return normalized.charAt(0) + normalized.slice(1).toLowerCase();
 };
@@ -224,6 +225,34 @@ const getVehicleLabel = (car) =>
   [car.brand, car.model].filter(Boolean).join(" ") || "Unnamed vehicle";
 
 const getFallbackPage = (tab) => (tab === "pending" ? mockPendingPage : mockCarsPage);
+
+const getCarSortValue = (car) => {
+  const localTouchedAt = Number(car?._localTouchedAt || 0);
+
+  if (localTouchedAt > 0) {
+    return localTouchedAt;
+  }
+
+  const updatedAt = car?.updatedAt ? new Date(car.updatedAt).getTime() : 0;
+  if (!Number.isNaN(updatedAt) && updatedAt > 0) {
+    return updatedAt;
+  }
+
+  const createdAt = car?.createdAt ? new Date(car.createdAt).getTime() : 0;
+  if (!Number.isNaN(createdAt) && createdAt > 0) {
+    return createdAt;
+  }
+
+  return Number(car?.id) || 0;
+};
+
+const sortCarsDesc = (cars = []) =>
+  [...cars].sort((left, right) => getCarSortValue(right) - getCarSortValue(left));
+
+const normalizeCarsPage = (pageData) => ({
+  ...pageData,
+  content: sortCarsDesc(pageData?.content || []),
+});
 
 const CarManagementPage = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -259,7 +288,7 @@ const CarManagementPage = () => {
       setSummary(mockSummary);
       setError(
         summaryResult.reason?.message ||
-          "Car summary could not be loaded from the API. Demo data is being shown.",
+          "Không thể tải thống kê xe từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
       );
       setUsingFallback(true);
     }
@@ -284,13 +313,13 @@ const CarManagementPage = () => {
           ? await getAdminPendingCars({ page: currentPage, size: PAGE_SIZE })
           : await getAdminCars({ page: currentPage, size: PAGE_SIZE });
 
-      setCarsPage(data || emptyPage);
+      setCarsPage(normalizeCarsPage(data || emptyPage));
       setUsingFallback(false);
     } catch (fetchError) {
-      setCarsPage(getFallbackPage(currentTab));
+      setCarsPage(normalizeCarsPage(getFallbackPage(currentTab)));
       setError(
         fetchError.message ||
-          "Cars could not be loaded from the API. Demo data is being shown.",
+          "Không thể tải danh sách xe từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
       );
       setUsingFallback(true);
     } finally {
@@ -324,30 +353,30 @@ const CarManagementPage = () => {
 
   const statCards = [
     {
-      label: "Total Cars",
-      value: formatNumber(summary.totalCars),
-      badge: `${formatNumber(pendingCount)} pending`,
+        label: "Tổng số xe",
+        value: formatNumber(summary.totalCars),
+        badge: `${formatNumber(pendingCount)} chờ duyệt`,
       icon: "inventory_2",
       tone: "green",
     },
     {
-      label: "Available Cars",
-      value: formatNumber(summary.availableCars),
-      badge: `${availableRate}% of fleet`,
+        label: "Xe sẵn sàng",
+        value: formatNumber(summary.availableCars),
+        badge: `${availableRate}% đội xe`,
       icon: "task_alt",
       tone: "cyan",
     },
     {
-      label: "Rejected Cars",
-      value: formatNumber(summary.rejectedCars),
-      badge: "Review required",
+        label: "Xe bị từ chối",
+        value: formatNumber(summary.rejectedCars),
+        badge: "Cần xem xét",
       icon: "error",
       tone: "rose",
     },
     {
-      label: "Unavailable Today",
-      value: formatNumber(summary.unavailableCars),
-      badge: "Active rentals",
+        label: "Xe không khả dụng hôm nay",
+        value: formatNumber(summary.unavailableCars),
+        badge: "Đơn thuê đang chạy",
       icon: "history",
       tone: "slate",
     },
@@ -368,15 +397,45 @@ const CarManagementPage = () => {
       setSelectedCar(mockCarDetails[carId] || null);
       setDetailError(
         fetchError.message ||
-          "Car detail could not be loaded from the API. Showing demo detail if available.",
+          "Không thể tải chi tiết xe từ API. Hệ thống sẽ hiển thị dữ liệu mẫu nếu có.",
       );
     } finally {
       setIsDetailLoading(false);
     }
   };
 
+  const syncCarListAfterStatusChange = (nextCar) => {
+    if (!nextCar?.id) return;
+
+    setCarsPage((current) => {
+      const currentContent = current.content || [];
+      const nextStatus = normalizeStatus(nextCar.status);
+      const shouldKeepInCurrentTab =
+        activeTab !== "pending" || nextStatus === "PENDING";
+
+      const remainingCars = currentContent.filter((car) => car.id !== nextCar.id);
+      const nextContent = shouldKeepInCurrentTab
+        ? sortCarsDesc([
+            {
+              ...nextCar,
+              _localTouchedAt: Date.now(),
+            },
+            ...remainingCars,
+          ])
+        : remainingCars;
+
+      return {
+        ...current,
+        content: nextContent,
+        totalElements: shouldKeepInCurrentTab
+          ? current.totalElements
+          : Math.max((current.totalElements || 0) - 1, 0),
+      };
+    });
+  };
+
   const refreshAfterAction = async () => {
-    await Promise.all([loadSummary(), loadCars(activeTab, page)]);
+    await loadSummary();
   };
 
   const handleApprove = async () => {
@@ -387,13 +446,22 @@ const CarManagementPage = () => {
       setActionError("");
       await approveAdminCar(selectedCar.id);
       const nextStatus = "AVAILABLE";
-      setSelectedCar((current) =>
-        current ? { ...current, status: nextStatus, rejectionReason: null } : current,
-      );
+      const updatedCar = {
+        ...selectedCar,
+        status: nextStatus,
+        rejectionReason: null,
+      };
+      setSelectedCar(updatedCar);
+      syncCarListAfterStatusChange(updatedCar);
       await refreshAfterAction();
+      setIsDetailOpen(false);
+      setSelectedCar(null);
+      setDetailError("");
+      setRejectReason("");
+      setRejectReasonError("");
       return true;
     } catch (submitError) {
-      setActionError(submitError.message || "Unable to approve this car.");
+      setActionError(submitError.message || "Không thể duyệt xe này.");
       return false;
     } finally {
       setIsSubmittingAction(false);
@@ -405,7 +473,7 @@ const CarManagementPage = () => {
     const trimmedReason = rejectReason.trim();
 
     if (!trimmedReason) {
-      setRejectReasonError("Rejection reason is required.");
+      setRejectReasonError("Vui lòng nhập lý do từ chối.");
       setActionError("");
       return false;
     }
@@ -415,15 +483,17 @@ const CarManagementPage = () => {
       setActionError("");
       setRejectReasonError("");
       await rejectAdminCar(selectedCar.id, trimmedReason);
-      setSelectedCar((current) =>
-        current
-          ? { ...current, status: "REJECTED", rejectionReason: trimmedReason }
-          : current,
-      );
+      const updatedCar = {
+        ...selectedCar,
+        status: "REJECTED",
+        rejectionReason: trimmedReason,
+      };
+      setSelectedCar(updatedCar);
+      syncCarListAfterStatusChange(updatedCar);
       await refreshAfterAction();
       return true;
     } catch (submitError) {
-      setActionError(submitError.message || "Unable to reject this car.");
+      setActionError(submitError.message || "Không thể từ chối xe này.");
       return false;
     } finally {
       setIsSubmittingAction(false);
@@ -437,11 +507,16 @@ const CarManagementPage = () => {
       setIsSubmittingAction(true);
       setActionError("");
       await removeAdminCar(selectedCar.id);
+      syncCarListAfterStatusChange({
+        ...selectedCar,
+        status: "REMOVED",
+      });
       setIsDetailOpen(false);
+      setSelectedCar(null);
       await refreshAfterAction();
       return true;
     } catch (submitError) {
-      setActionError(submitError.message || "Unable to remove this car.");
+      setActionError(submitError.message || "Không thể gỡ xe này.");
       return false;
     } finally {
       setIsSubmittingAction(false);
@@ -467,27 +542,27 @@ const CarManagementPage = () => {
   const getConfirmContent = () => {
     if (confirmAction === "approve") {
       return {
-        title: "Approve Car",
-        body: "Are you sure you want to approve this car?",
-        buttonText: "Yes, Approve",
+        title: "Duyệt xe",
+        body: "Bạn có chắc muốn duyệt xe này?",
+        buttonText: "Xác nhận duyệt",
         buttonVariant: "success",
       };
     }
 
     if (confirmAction === "reject") {
       return {
-        title: "Reject Car",
-        body: "Are you sure you want to reject this car?",
-        buttonText: "Yes, Reject",
+        title: "Từ chối xe",
+        body: "Bạn có chắc muốn từ chối xe này?",
+        buttonText: "Xác nhận từ chối",
         buttonVariant: "warning",
       };
     }
 
     if (confirmAction === "remove") {
       return {
-        title: "Remove Car",
-        body: "Are you sure you want to remove this car?",
-        buttonText: "Yes, Remove",
+        title: "Gỡ xe",
+        body: "Bạn có chắc muốn gỡ xe này?",
+        buttonText: "Xác nhận gỡ",
         buttonVariant: "danger",
       };
     }
@@ -495,7 +570,7 @@ const CarManagementPage = () => {
     return {
       title: "",
       body: "",
-      buttonText: "Confirm",
+      buttonText: "Xác nhận",
       buttonVariant: "primary",
     };
   };
@@ -542,7 +617,7 @@ const CarManagementPage = () => {
                 setPage(0);
               }}
             >
-              <span>All Cars</span>
+              <span>Tất cả xe</span>
             </button>
             <button
               type="button"
@@ -552,7 +627,7 @@ const CarManagementPage = () => {
                 setPage(0);
               }}
             >
-              <span>Pending Approvals</span>
+              <span>Chờ duyệt</span>
               <span className="car-tab-counter">{formatNumber(pendingCount)}</span>
             </button>
           </div>
@@ -560,11 +635,11 @@ const CarManagementPage = () => {
 
         <div className="car-table-area">
           <div className="car-table-header">
-            <div>Vehicle</div>
-            <div>License Plate</div>
-            <div>Price/Day</div>
-            <div>Status</div>
-            <div>Actions</div>
+            <div>Xe</div>
+            <div>Biển số</div>
+            <div>Giá/ngày</div>
+            <div>Trạng thái</div>
+            <div>Thao tác</div>
           </div>
 
           {isLoadingCars ? (
@@ -573,7 +648,7 @@ const CarManagementPage = () => {
             </div>
           ) : (carsPage.content || []).length === 0 ? (
             <div className="car-empty-state">
-              No cars available in this view.
+              Không có xe nào trong mục này.
             </div>
           ) : (
             <div className="car-row-list">
@@ -615,7 +690,7 @@ const CarManagementPage = () => {
                         className="car-detail-link"
                         onClick={() => handleOpenDetail(car.id)}
                       >
-                        View Detail
+                        Xem chi tiết
                       </button>
                     </div>
                   </div>
@@ -627,7 +702,7 @@ const CarManagementPage = () => {
 
         <div className="car-table-footer">
           <div className="car-table-summary">
-            Showing {startItem} to {endItem} of {formatNumber(carsPage.totalElements)} entries
+            Hiển thị {startItem} đến {endItem} trên tổng {formatNumber(carsPage.totalElements)} mục
           </div>
 
           <Pagination className="mb-0 car-pagination">
@@ -661,9 +736,10 @@ const CarManagementPage = () => {
         onHide={() => setIsDetailOpen(false)}
         centered
         size="lg"
+        dialogClassName="car-detail-modal"
       >
         <Modal.Header closeButton className="car-detail-header">
-          <Modal.Title>Car Detail</Modal.Title>
+          <Modal.Title>Chi tiết xe</Modal.Title>
         </Modal.Header>
         <Modal.Body className="car-detail-body">
           {detailError ? <Alert variant="warning">{detailError}</Alert> : null}
@@ -675,7 +751,7 @@ const CarManagementPage = () => {
             </div>
           ) : !selectedCar ? (
             <Alert variant="secondary" className="mb-0">
-              Car detail is unavailable.
+              Không có dữ liệu chi tiết xe.
             </Alert>
           ) : (
             <div className="car-detail-grid">
@@ -705,7 +781,7 @@ const CarManagementPage = () => {
                       {getVehicleLabel(selectedCar)}
                     </div>
                     <div className="car-detail-subtitle">
-                      {selectedCar.vehicleTypeName || "Vehicle"} • {selectedCar.year || "--"}
+                      {selectedCar.vehicleTypeName || "Xe"} • {selectedCar.year || "--"}
                     </div>
                   </div>
                   <span
@@ -719,27 +795,27 @@ const CarManagementPage = () => {
 
                 <div className="car-detail-fields">
                   <div className="car-detail-field">
-                    <span>License Plate</span>
+                    <span>Biển số</span>
                     <strong>{selectedCar.licensePlate || "--"}</strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Price/Day</span>
+                    <span>Giá/ngày</span>
                     <strong>{formatCurrency(selectedCar.pricePerDay)}</strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Color</span>
+                    <span>Màu sắc</span>
                     <strong>{selectedCar.color || "--"}</strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Owner</span>
+                    <span>Chủ xe</span>
                     <strong>{selectedCar.ownerName || "--"}</strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Owner Email</span>
+                    <span>Email chủ xe</span>
                     <strong>{selectedCar.ownerEmail || "--"}</strong>
                   </div>
                   <div className="car-detail-field car-detail-field-full">
-                    <span>Location</span>
+                    <span>Địa điểm</span>
                     <strong>
                       {[selectedCar.locationName, selectedCar.locationAddress]
                         .filter(Boolean)
@@ -747,18 +823,18 @@ const CarManagementPage = () => {
                     </strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Created At</span>
+                    <span>Ngày tạo</span>
                     <strong>{formatDateTime(selectedCar.createdAt)}</strong>
                   </div>
                   <div className="car-detail-field">
-                    <span>Updated At</span>
+                    <span>Cập nhật lúc</span>
                     <strong>{formatDateTime(selectedCar.updatedAt)}</strong>
                   </div>
                 </div>
 
                 <Form.Group className="mt-3">
                   <Form.Label className="car-detail-reject-label">
-                    Rejection Reason
+                    Lý do từ chối
                   </Form.Label>
                   <Form.Control
                     as="textarea"
@@ -771,7 +847,7 @@ const CarManagementPage = () => {
                         setRejectReasonError("");
                       }
                     }}
-                    placeholder={selectedCar.rejectionReason || "Enter reason if you want to reject this car"}
+                    placeholder={selectedCar.rejectionReason || "Nhập lý do nếu bạn muốn từ chối xe này"}
                   />
                   <Form.Control.Feedback type="invalid">
                     {rejectReasonError}
@@ -787,14 +863,14 @@ const CarManagementPage = () => {
             onClick={() => setIsDetailOpen(false)}
             disabled={isSubmittingAction}
           >
-            Close
+            Đóng
           </Button>
           <Button
             variant="outline-danger"
             onClick={() => setConfirmAction("remove")}
             disabled={isSubmittingAction || !selectedCar?.id}
           >
-            {isSubmittingAction ? "Processing..." : "Remove Car"}
+            {isSubmittingAction ? "Đang xử lý..." : "Gỡ xe"}
           </Button>
           {isPendingSelectedCar ? (
             <>
@@ -803,14 +879,14 @@ const CarManagementPage = () => {
                 onClick={() => setConfirmAction("reject")}
                 disabled={isSubmittingAction || !selectedCar?.id}
               >
-                {isSubmittingAction ? "Processing..." : "Reject"}
+                {isSubmittingAction ? "Đang xử lý..." : "Từ chối"}
               </Button>
               <Button
                 variant="success"
                 onClick={() => setConfirmAction("approve")}
                 disabled={isSubmittingAction || !selectedCar?.id}
               >
-                {isSubmittingAction ? "Processing..." : "Approve"}
+                {isSubmittingAction ? "Đang xử lý..." : "Duyệt"}
               </Button>
             </>
           ) : null}
@@ -836,7 +912,7 @@ const CarManagementPage = () => {
             onClick={() => setConfirmAction("")}
             disabled={isSubmittingAction}
           >
-            Cancel
+            Hủy
           </Button>
           <Button
             variant={confirmContent.buttonVariant}
@@ -848,7 +924,7 @@ const CarManagementPage = () => {
             }}
             disabled={isSubmittingAction}
           >
-            {isSubmittingAction ? "Processing..." : confirmContent.buttonText}
+            {isSubmittingAction ? "Đang xử lý..." : confirmContent.buttonText}
           </Button>
         </Modal.Footer>
       </Modal>

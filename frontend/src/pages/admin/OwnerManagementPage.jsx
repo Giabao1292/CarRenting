@@ -312,6 +312,7 @@ const OwnerManagementPage = () => {
       await refreshCurrentData();
       setIsDetailOpen(false);
       setDetailOwner(null);
+      setDetailError("");
     } catch (actionError) {
       setDetailError(actionError.message || "Không thể duyệt hồ sơ.");
     } finally {
@@ -568,6 +569,7 @@ const OwnerManagementPage = () => {
         onHide={() => setIsDetailOpen(false)}
         centered
         size="lg"
+        dialogClassName="owner-detail-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>Chi tiết chủ xe</Modal.Title>
@@ -624,7 +626,7 @@ const OwnerManagementPage = () => {
                   <Card className="owner-detail-card border-0 h-100">
                     <Card.Body>
                       <div className="owner-detail-card-title">Thông tin tài khoản</div>
-                      <div className="owner-detail-pair"><span>Role</span><strong>{detailOwner.userRole || "--"}</strong></div>
+                      <div className="owner-detail-pair"><span>Vai trò</span><strong>{detailOwner.userRole || "--"}</strong></div>
                       <div className="owner-detail-pair"><span>Đã xác minh</span><strong>{detailOwner.userVerified ? "Có" : "Chưa"}</strong></div>
                       <div className="owner-detail-pair"><span>Đã khóa</span><strong>{detailOwner.userDeleted ? "Có" : "Không"}</strong></div>
                       <div className="owner-detail-pair compact"><span>Ngày tạo hồ sơ</span><strong>{formatDate(detailOwner.createdAt)}</strong></div>

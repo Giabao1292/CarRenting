@@ -75,30 +75,30 @@ const UserManagementPage = () => {
 
     return [
       {
-        label: "Total Customers",
+        label: "Tổng khách hàng",
         value: formatNumber(dashboard.totalUsers),
-        meta: `${activeRate}% active`,
+        meta: `${activeRate}% đang hoạt động`,
         icon: "groups",
         tone: "primary",
       },
       {
-        label: "Active Customers",
+        label: "Khách hàng hoạt động",
         value: formatNumber(dashboard.activeUsers),
-        meta: `${activeRate}% of total`,
+        meta: `${activeRate}% trên tổng số`,
         icon: "check_circle",
         tone: "success",
       },
       {
-        label: "Blocked Customers",
+        label: "Khách hàng bị khóa",
         value: formatNumber(dashboard.blockedUsers),
-        meta: `${blockedRate}% of total`,
+        meta: `${blockedRate}% trên tổng số`,
         icon: "block",
         tone: "danger",
       },
       {
-        label: "Verified Customers",
+        label: "Khách hàng đã xác minh",
         value: formatNumber(dashboard.verifiedUsers),
-        meta: `${verifiedRate}% verified`,
+        meta: `${verifiedRate}% đã xác minh`,
         icon: "verified",
         tone: "emerald",
       },
@@ -112,7 +112,7 @@ const UserManagementPage = () => {
         const data = await getUserDashboard();
         setDashboard(data);
       } catch (fetchError) {
-        setError(fetchError.message || "Unable to load user dashboard");
+        setError(fetchError.message || "Không thể tải bảng điều khiển người dùng");
       } finally {
         setIsLoadingDashboard(false);
       }
@@ -140,7 +140,7 @@ const UserManagementPage = () => {
         setCustomers([]);
         setTotalPages(0);
         setTotalElements(0);
-        setError(fetchError.message || "Unable to load customers");
+        setError(fetchError.message || "Không thể tải danh sách khách hàng");
       } finally {
         setIsLoadingTable(false);
       }
@@ -195,7 +195,7 @@ const UserManagementPage = () => {
       await refreshData();
       setSelectedCustomer(null);
     } catch (actionError) {
-      setError(actionError.message || "Unable to update customer status");
+      setError(actionError.message || "Không thể cập nhật trạng thái khách hàng");
     } finally {
       setActionLoadingId(null);
     }
@@ -205,15 +205,14 @@ const UserManagementPage = () => {
   const endItem = Math.min((page + 1) * PAGE_SIZE, totalElements);
   const visiblePages = buildPagination(page, totalPages);
   const isSelectedCustomerBlocked = Boolean(selectedCustomer?.isDeleted);
-  const statusActionLabel = isSelectedCustomerBlocked ? "unblock" : "block";
+  const statusActionLabel = isSelectedCustomerBlocked ? "mở khóa" : "khóa";
 
   return (
     <>
       <div className="d-flex flex-column gap-2 mb-4">
-        <h1 className="fw-bold display-5 mb-0">User Management</h1>
+        <h1 className="fw-bold display-5 mb-0">Quản lý người dùng</h1>
         <p className="text-muted fs-5 mb-0">
-          Manage customer access, review verification status, and control
-          account activity.
+          Quản lý quyền truy cập khách hàng, trạng thái xác minh và hoạt động tài khoản.
         </p>
       </div>
 
@@ -254,9 +253,9 @@ const UserManagementPage = () => {
         <Card.Body className="p-4 border-bottom">
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
             <div className="d-flex align-items-center gap-3">
-              <div className="user-table-chip">All Users</div>
+              <div className="user-table-chip">Tất cả người dùng</div>
               <Badge bg="light" text="dark" pill className="px-3 py-2">
-                {formatNumber(totalElements)} customers
+                {formatNumber(totalElements)} khách hàng
               </Badge>
             </div>
 
@@ -273,11 +272,11 @@ const UserManagementPage = () => {
                 <Form.Control
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Search by name, email, or phone"
+                  placeholder="Tìm theo tên, email hoặc số điện thoại"
                   className="border-start-0 border-end-0"
                 />
                 <Button type="submit" className="btn-primary-custom px-4">
-                  Search
+                  Tìm kiếm
                 </Button>
               </InputGroup>
             </Form>
@@ -294,12 +293,12 @@ const UserManagementPage = () => {
           <Table className="align-middle mb-0 user-management-table">
             <thead>
               <tr>
-                <th>Full Name</th>
-                <th>Email Address</th>
-                <th>Phone Number</th>
-                <th>Verified</th>
-                <th>Status</th>
-                <th className="text-end">Actions</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Xác minh</th>
+                <th>Trạng thái</th>
+                <th className="text-end">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -312,7 +311,7 @@ const UserManagementPage = () => {
               ) : customers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-5 text-muted">
-                    No customers found.
+                    Không tìm thấy khách hàng nào.
                   </td>
                 </tr>
               ) : (
@@ -342,7 +341,7 @@ const UserManagementPage = () => {
                           <span className="material-symbols-outlined">
                             {customer.verified ? "verified" : "hourglass"}
                           </span>
-                          {customer.verified ? "Verified" : "Pending"}
+                          {customer.verified ? "Đã xác minh" : "Chờ xác minh"}
                         </span>
                       </td>
                       <td>
@@ -350,7 +349,7 @@ const UserManagementPage = () => {
                           className={`status-pill ${isBlocked ? "status-blocked" : "status-active"}`}
                         >
                           <span className="status-dot" />
-                          {isBlocked ? "Blocked" : "Active"}
+                          {isBlocked ? "Bị khóa" : "Hoạt động"}
                         </span>
                       </td>
                       <td className="text-end">
@@ -374,7 +373,7 @@ const UserManagementPage = () => {
                               >
                                 lock_open
                               </span>
-                              Unblock
+                              Mở khóa
                             </>
                           ) : (
                             <>
@@ -384,7 +383,7 @@ const UserManagementPage = () => {
                               >
                                 block
                               </span>
-                              Block
+                              Khóa
                             </>
                           )}
                         </Button>
@@ -400,8 +399,7 @@ const UserManagementPage = () => {
         <Card.Body className="p-4 border-top">
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
             <div className="fw-semibold text-secondary">
-              Showing {startItem}-{endItem} of {formatNumber(totalElements)}{" "}
-              users
+              Hiển thị {startItem}-{endItem} trên tổng {formatNumber(totalElements)} người dùng
             </div>
 
             <Pagination className="mb-0 user-pagination">
@@ -445,17 +443,17 @@ const UserManagementPage = () => {
       >
         <Modal.Header closeButton={actionLoadingId === null}>
           <Modal.Title className="text-capitalize">
-            Confirm {statusActionLabel} user
+            Xác nhận {statusActionLabel} người dùng
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedCustomer && (
             <p className="mb-0">
-              Are you sure you want to {statusActionLabel}{" "}
+              Bạn có chắc muốn {statusActionLabel}{" "}
               <strong>
                 {selectedCustomer.fullName ||
                   selectedCustomer.email ||
-                  `user #${selectedCustomer.id}`}
+                  `người dùng #${selectedCustomer.id}`}
               </strong>
               ?
             </p>
@@ -467,7 +465,7 @@ const UserManagementPage = () => {
             onClick={handleCloseStatusModal}
             disabled={actionLoadingId !== null}
           >
-            Cancel
+            Hủy
           </Button>
           <Button
             variant={isSelectedCustomerBlocked ? "success" : "danger"}
@@ -477,9 +475,9 @@ const UserManagementPage = () => {
             {actionLoadingId !== null ? (
               <Spinner animation="border" size="sm" />
             ) : isSelectedCustomerBlocked ? (
-              "Unblock"
+              "Mở khóa"
             ) : (
-              "Block"
+              "Khóa"
             )}
           </Button>
         </Modal.Footer>

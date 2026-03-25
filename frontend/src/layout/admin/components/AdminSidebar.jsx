@@ -4,56 +4,56 @@ import { APP_ROUTES } from "../../../app/routes";
 
 const menuGroups = [
   {
-    title: "Main Menu",
+    title: "Menu chính",
     items: [
-      { label: "Overview", icon: "dashboard", to: APP_ROUTES.ADMIN_DASHBOARD },
+      { label: "Tổng quan", icon: "dashboard", to: APP_ROUTES.ADMIN_DASHBOARD },
       {
-        label: "Car Management",
+        label: "Quản lý xe",
         icon: "directions_car",
         to: APP_ROUTES.ADMIN_CARS,
       },
       {
-        label: "User Management",
+        label: "Quản lý người dùng",
         icon: "group",
         to: APP_ROUTES.ADMIN_USERS,
       },
       {
-        label: "Owner Management",
+        label: "Quản lý chủ xe",
         icon: "badge",
         to: APP_ROUTES.ADMIN_OWNERS,
       },
       {
-        label: "Booking Management",
+        label: "Quản lý đặt xe",
         icon: "book_online",
         to: APP_ROUTES.ADMIN_BOOKINGS,
       },
       {
-        label: "License Management",
+        label: "Quản lý giấy phép",
         icon: "credit_card",
         to: APP_ROUTES.ADMIN_LICENSES,
       },
       {
-        label: "Payment Management",
+        label: "Quản lý thanh toán",
         icon: "account_balance_wallet",
         to: APP_ROUTES.ADMIN_PAYMENTS,
       },
       {
-        label: "Review",
+        label: "Quản lý đánh giá",
         icon: "rate_review",
         to: APP_ROUTES.ADMIN_REVIEWS,
       },
       {
-        label: "Promotion",
+        label: "Quản lý khuyến mãi",
         icon: "local_offer",
         to: APP_ROUTES.ADMIN_PROMOTIONS,
       },
     ],
   },
   {
-    title: "Finance",
+    title: "Tài chính",
     items: [
-      { label: "Transactions", icon: "payments" },
-      { label: "Invoices", icon: "receipt_long" },
+      { label: "Giao dịch", icon: "payments" },
+      { label: "Hóa đơn", icon: "receipt_long" },
     ],
   },
 ];
@@ -114,12 +114,12 @@ const AdminSidebar = () => {
                 </span>
               </div>
               <div>
-                <div className="fw-bold small">Need Help?</div>
-                <small className="text-muted">Contact Support</small>
+                <div className="fw-bold small">Cần hỗ trợ?</div>
+                <small className="text-muted">Liên hệ bộ phận hỗ trợ</small>
               </div>
             </div>
             <Button variant="outline-secondary" className="w-100 fw-semibold">
-              Open Ticket
+              Mở yêu cầu hỗ trợ
             </Button>
           </Card.Body>
         </Card>

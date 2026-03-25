@@ -158,10 +158,10 @@ const emptyPage = {
 };
 
 const STATUS_TABS = [
-  { label: "All", value: "" },
-  { label: "Completed", value: "COMPLETED" },
-  { label: "Pending", value: "PENDING" },
-  { label: "Cancelled", value: "CANCELLED" },
+  { label: "Tất cả", value: "" },
+  { label: "Hoàn thành", value: "COMPLETED" },
+  { label: "Chờ xử lý", value: "PENDING" },
+  { label: "Đã hủy", value: "CANCELLED" },
 ];
 
 const buildPagination = (currentPage, totalPages) => {
@@ -219,7 +219,7 @@ const formatDateRange = (pickupAt, dropoffAt) => {
       day: "numeric",
       month: "short",
     }).format(end),
-    days: `${diffDays} Day${diffDays > 1 ? "s" : ""}`,
+    days: `${diffDays} ngày`,
   };
 };
 
@@ -274,7 +274,7 @@ const BookingManagementPage = () => {
       if (countFailed || revenueFailed || statusFailed || topFailed) {
         setUsingFallback(true);
         setError(
-          "Some booking analytics could not be loaded from the API. Demo data is being shown for unavailable sections.",
+          "Không thể tải một số thống kê đặt xe từ API. Hệ thống đang hiển thị dữ liệu mẫu cho các mục chưa khả dụng.",
         );
       }
 
@@ -306,7 +306,7 @@ const BookingManagementPage = () => {
         setUsingFallback(true);
         setError(
           fetchError.message ||
-            "Booking data could not be loaded from the API. Demo data is being shown.",
+            "Không thể tải dữ liệu đặt xe từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
         );
       } finally {
         setIsLoadingTable(false);
@@ -334,31 +334,31 @@ const BookingManagementPage = () => {
 
     return [
       {
-        label: "Total Bookings",
+        label: "Tổng lượt đặt",
         value: formatCurrency(totalBookings),
-        caption: "+4.2% from last month",
+        caption: "+4,2% so với tháng trước",
         icon: "monitoring",
         tone: "green",
       },
       {
-        label: "Total Revenue",
+        label: "Tổng doanh thu",
         value: formatCurrency(totalRevenue),
         suffix: "VND",
-        caption: "Platform gross revenue",
+        caption: "Doanh thu gộp của nền tảng",
         icon: "payments",
         tone: "green",
       },
       {
-        label: "Completed",
+        label: "Hoàn thành",
         value: formatCurrency(completed),
-        caption: "Successful rentals",
+        caption: "Đơn thuê thành công",
         icon: "check_circle",
         tone: "green",
       },
       {
-        label: "Pending",
+        label: "Chờ xử lý",
         value: formatCurrency(pending),
-        caption: "Requires attention",
+        caption: "Cần theo dõi",
         icon: "more_horiz",
         tone: "amber",
       },
@@ -385,7 +385,7 @@ const BookingManagementPage = () => {
       setDetailBooking(mockBookingDetails[bookingId] || null);
       setDetailError(
         fetchError.message ||
-          "Booking detail could not be loaded from the API. Showing demo detail if available.",
+          "Không thể tải chi tiết đặt xe từ API. Hệ thống sẽ hiển thị dữ liệu mẫu nếu có.",
       );
     } finally {
       setIsDetailLoading(false);
@@ -395,9 +395,9 @@ const BookingManagementPage = () => {
   return (
     <div className="booking-management-page d-grid gap-4">
       <div>
-        <h1 className="booking-page-title mb-2">Booking Management</h1>
+        <h1 className="booking-page-title mb-2">Quản lý đặt xe</h1>
         <p className="booking-page-subtitle mb-0">
-          Monitor and manage all vehicle reservations across the platform.
+          Theo dõi và quản lý toàn bộ đơn đặt xe trên hệ thống.
         </p>
       </div>
 
@@ -465,7 +465,7 @@ const BookingManagementPage = () => {
                   setPage(0);
                 }}
               />
-              <span className="booking-date-divider">to</span>
+              <span className="booking-date-divider">đến</span>
               <Form.Control
                 type="date"
                 value={toDate}
@@ -485,7 +485,7 @@ const BookingManagementPage = () => {
               onClick={() => setShowFilters((current) => !current)}
             >
               <span className="material-symbols-outlined">filter_list</span>
-              More Filters
+              Bộ lọc thêm
             </Button>
           </div>
 
@@ -494,7 +494,7 @@ const BookingManagementPage = () => {
               <Col md={6} xl={4}>
                 <Form.Control
                   value={email}
-                  placeholder="Filter by customer email"
+                  placeholder="Lọc theo email khách hàng"
                   onChange={(event) => {
                     setEmail(event.target.value);
                     setPage(0);
@@ -504,7 +504,7 @@ const BookingManagementPage = () => {
               <Col md={6} xl={4}>
                 <Form.Control
                   value={locationId}
-                  placeholder="Filter by location ID"
+                  placeholder="Lọc theo ID địa điểm"
                   onChange={(event) => {
                     setLocationId(event.target.value);
                     setPage(0);
@@ -524,7 +524,7 @@ const BookingManagementPage = () => {
                     setPage(0);
                   }}
                 >
-                  Reset
+                  Đặt lại
                 </Button>
               </Col>
             </Row>
@@ -535,13 +535,13 @@ const BookingManagementPage = () => {
           <Table className="align-middle mb-0 booking-management-table">
             <thead>
               <tr>
-                <th>BOOKING CODE</th>
-                <th>CUSTOMER</th>
-                <th>LOCATION</th>
-                <th>DATES</th>
-                <th>TOTAL (VND)</th>
-                <th>STATUS</th>
-                <th>ACTIONS</th>
+                <th>MÃ ĐẶT XE</th>
+                <th>KHÁCH HÀNG</th>
+                <th>ĐỊA ĐIỂM</th>
+                <th>THỜI GIAN</th>
+                <th>TỔNG TIỀN (VND)</th>
+                <th>TRẠNG THÁI</th>
+                <th>THAO TÁC</th>
               </tr>
             </thead>
             <tbody>
@@ -554,7 +554,7 @@ const BookingManagementPage = () => {
               ) : bookingsPage.content.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center text-muted py-5">
-                    No bookings found for the selected filters.
+                    Không có đơn đặt xe phù hợp với bộ lọc đã chọn.
                   </td>
                 </tr>
               ) : (
@@ -629,7 +629,7 @@ const BookingManagementPage = () => {
         <Card.Body className="booking-table-footer">
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
             <div className="booking-records-text">
-              Showing {startItem} - {endItem} of {formatCurrency(bookingsPage.totalElements)} results
+              Hiển thị {startItem} - {endItem} trên tổng {formatCurrency(bookingsPage.totalElements)} kết quả
             </div>
 
             <Pagination className="mb-0 booking-pagination">
@@ -674,8 +674,8 @@ const BookingManagementPage = () => {
           <Card className="booking-analytics-card border-0 shadow-sm h-100">
             <Card.Body>
               <div className="booking-section-heading">
-                <h2>Top Booked Vehicles</h2>
-                <p>Most requested vehicles</p>
+                <h2>Xe được đặt nhiều nhất</h2>
+                <p>Các xe được yêu cầu nhiều nhất</p>
               </div>
               <div className="booking-top-list">
                 {topVehicles.map((vehicle) => (
@@ -703,7 +703,7 @@ const BookingManagementPage = () => {
         size="lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Booking Detail</Modal.Title>
+          <Modal.Title>Chi tiết đặt xe</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {detailError ? <Alert variant="warning">{detailError}</Alert> : null}
@@ -713,64 +713,64 @@ const BookingManagementPage = () => {
             </div>
           ) : !detailBooking ? (
             <div className="text-muted text-center py-4">
-              Booking detail is unavailable.
+              Không có dữ liệu chi tiết đặt xe.
             </div>
           ) : (
             <div className="booking-detail-grid">
               <Card className="border-0 bg-light-subtle">
                 <Card.Body>
-                  <div className="booking-detail-section-title">Booking Info</div>
+                  <div className="booking-detail-section-title">Thông tin đặt xe</div>
                   <div className="booking-detail-field">
-                    <strong>Booking Code:</strong> #{detailBooking.bookingCode || "--"}
+                    <strong>Mã đặt xe:</strong> #{detailBooking.bookingCode || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Status:</strong> {detailBooking.status || "--"}
+                    <strong>Trạng thái:</strong> {detailBooking.status || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Created At:</strong> {formatDate(detailBooking.createdAt)}
+                    <strong>Ngày tạo:</strong> {formatDate(detailBooking.createdAt)}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Pickup:</strong> {formatDate(detailBooking.pickupAt)}
+                    <strong>Nhận xe:</strong> {formatDate(detailBooking.pickupAt)}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Dropoff:</strong> {formatDate(detailBooking.dropoffAt)}
+                    <strong>Trả xe:</strong> {formatDate(detailBooking.dropoffAt)}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Total:</strong> {formatCurrency(detailBooking.totalAmount)} VND
+                    <strong>Tổng tiền:</strong> {formatCurrency(detailBooking.totalAmount)} VND
                   </div>
                 </Card.Body>
               </Card>
 
               <Card className="border-0 bg-light-subtle">
                 <Card.Body>
-                  <div className="booking-detail-section-title">Customer</div>
+                  <div className="booking-detail-section-title">Khách hàng</div>
                   <div className="booking-detail-field">
-                    <strong>Full Name:</strong> {detailBooking.customer?.fullName || "--"}
+                    <strong>Họ tên:</strong> {detailBooking.customer?.fullName || "--"}
                   </div>
                   <div className="booking-detail-field">
                     <strong>Email:</strong> {detailBooking.customer?.email || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Phone:</strong> {detailBooking.customer?.phone || "--"}
+                    <strong>Số điện thoại:</strong> {detailBooking.customer?.phone || "--"}
                   </div>
                 </Card.Body>
               </Card>
 
               <Card className="border-0 bg-light-subtle">
                 <Card.Body>
-                  <div className="booking-detail-section-title">Locations</div>
+                  <div className="booking-detail-section-title">Địa điểm</div>
                   <div className="booking-detail-field">
-                    <strong>Pickup:</strong> {detailBooking.pickupLocation?.name || "--"}
+                    <strong>Điểm nhận xe:</strong> {detailBooking.pickupLocation?.name || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Pickup Address:</strong>{" "}
+                    <strong>Địa chỉ nhận xe:</strong>{" "}
                     {detailBooking.pickupLocation?.address || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Dropoff:</strong> {detailBooking.dropoffLocation?.name || "--"}
+                    <strong>Điểm trả xe:</strong> {detailBooking.dropoffLocation?.name || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Dropoff Address:</strong>{" "}
+                    <strong>Địa chỉ trả xe:</strong>{" "}
                     {detailBooking.dropoffLocation?.address || "--"}
                   </div>
                 </Card.Body>
@@ -778,26 +778,26 @@ const BookingManagementPage = () => {
 
               <Card className="border-0 bg-light-subtle">
                 <Card.Body>
-                  <div className="booking-detail-section-title">Payment</div>
+                  <div className="booking-detail-section-title">Thanh toán</div>
                   <div className="booking-detail-field">
-                    <strong>Method:</strong> {detailBooking.payment?.method || "--"}
+                    <strong>Phương thức:</strong> {detailBooking.payment?.method || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Status:</strong> {detailBooking.payment?.status || "--"}
+                    <strong>Trạng thái:</strong> {detailBooking.payment?.status || "--"}
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Amount:</strong>{" "}
+                    <strong>Số tiền:</strong>{" "}
                     {formatCurrency(detailBooking.payment?.amount)} VND
                   </div>
                   <div className="booking-detail-field">
-                    <strong>Paid At:</strong> {formatDate(detailBooking.payment?.paidAt)}
+                    <strong>Thời gian thanh toán:</strong> {formatDate(detailBooking.payment?.paidAt)}
                   </div>
                 </Card.Body>
               </Card>
 
               <Card className="border-0 bg-light-subtle booking-detail-wide">
                 <Card.Body>
-                  <div className="booking-detail-section-title">Booking Items</div>
+                  <div className="booking-detail-section-title">Chi tiết xe đặt</div>
                   <div className="booking-items-list">
                     {(detailBooking.items || []).map((item, index) => (
                       <div key={`${item.vehicleName}-${index}`} className="booking-item-row">
@@ -806,7 +806,7 @@ const BookingManagementPage = () => {
                             {item.vehicleName || "--"}
                           </div>
                           <div className="booking-item-meta">
-                            Qty {item.quantity || 0} x {formatCurrency(item.pricePerDay)} VND
+                            SL {item.quantity || 0} x {formatCurrency(item.pricePerDay)} VND
                           </div>
                         </div>
                         <div className="booking-item-subtotal">
@@ -818,7 +818,7 @@ const BookingManagementPage = () => {
 
                   {detailBooking.promotion?.code ? (
                     <div className="booking-promotion-box">
-                      Promotion `{detailBooking.promotion.code}`: -
+                      Khuyến mãi `{detailBooking.promotion.code}`: -
                       {formatCurrency(detailBooking.promotion.discountAmount)} VND
                     </div>
                   ) : null}
@@ -836,7 +836,7 @@ const BookingManagementPage = () => {
               setDetailError("");
             }}
           >
-            Close
+            Đóng
           </Button>
         </Modal.Footer>
       </Modal>

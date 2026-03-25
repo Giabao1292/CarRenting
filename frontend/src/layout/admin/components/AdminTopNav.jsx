@@ -41,7 +41,7 @@ const AdminTopNav = ({ avatar }) => {
                 </span>
               </InputGroup.Text>
               <Form.Control
-                placeholder="Search..."
+                placeholder="Tìm kiếm..."
                 className="border-start-0 bg-light"
               />
             </InputGroup>
@@ -51,11 +51,11 @@ const AdminTopNav = ({ avatar }) => {
         <div className="d-flex align-items-center gap-3">
           <Nav className="d-none d-lg-flex gap-2 text-muted mioto-nav-links">
             <Nav.Link className="text-dark" href="#">
-              Dashboard
+              Tổng quan
             </Nav.Link>
-            <Nav.Link href="#">Rentals</Nav.Link>
-            <Nav.Link href="#">Users</Nav.Link>
-            <Nav.Link href="#">Settings</Nav.Link>
+            <Nav.Link href="#">Đơn thuê</Nav.Link>
+            <Nav.Link href="#">Người dùng</Nav.Link>
+            <Nav.Link href="#">Cài đặt</Nav.Link>
           </Nav>
           <Button
             variant="light"
@@ -71,7 +71,7 @@ const AdminTopNav = ({ avatar }) => {
           </Button>
           <img
             src={avatar}
-            alt="Admin"
+            alt="Quản trị viên"
             width={40}
             height={40}
             className="rounded-circle border border-success object-fit-cover"
@@ -80,7 +80,7 @@ const AdminTopNav = ({ avatar }) => {
             className="btn-primary-custom fw-bold d-none d-md-inline-block"
             onClick={handleLogout}
           >
-            Logout
+            Đăng xuất
           </Button>
         </div>
       </Container>

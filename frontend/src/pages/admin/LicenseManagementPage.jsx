@@ -21,6 +21,10 @@ import {
 import "../../style/admin/LicenseManagement.css";
 
 const PAGE_SIZE = 10;
+const LICENSE_LIST_FALLBACK_MESSAGE =
+  "Không thể tải dữ liệu giấy phép từ máy chủ. Hệ thống đang hiển thị dữ liệu mẫu.";
+const LICENSE_DETAIL_FALLBACK_MESSAGE =
+  "Không thể tải chi tiết giấy phép từ máy chủ. Hệ thống đang hiển thị dữ liệu mẫu nếu có.";
 
 const emptyPage = {
   content: [],
@@ -218,10 +222,7 @@ const LicenseManagementPage = () => {
 
         setLicensesPage(mockLicensesPage);
         setUsingFallback(true);
-        setError(
-          fetchError.message ||
-            "Không tải được danh sách giấy phép từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
-        );
+        setError(LICENSE_LIST_FALLBACK_MESSAGE);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -299,10 +300,7 @@ const LicenseManagementPage = () => {
       setSelectedLicense(detail);
     } catch (fetchError) {
       setSelectedLicense(mockLicenseDetails[licenseId] || null);
-      setDetailError(
-        fetchError.message ||
-          "Không tải được chi tiết giấy phép từ API. Hệ thống đang hiển thị dữ liệu mẫu nếu có.",
-      );
+      setDetailError(LICENSE_DETAIL_FALLBACK_MESSAGE);
     } finally {
       setIsDetailLoading(false);
     }

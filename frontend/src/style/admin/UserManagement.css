@@ -99,11 +99,13 @@
 .user-management-table th:nth-child(4),
 .user-management-table td:nth-child(4) {
   width: 14%;
+  text-align: center;
 }
 
 .user-management-table th:nth-child(5),
 .user-management-table td:nth-child(5) {
   width: 14%;
+  text-align: center;
 }
 
 .user-management-table th:nth-child(6),
@@ -114,16 +116,22 @@
 .status-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
   border-radius: 999px;
-  padding: 9px 12px;
+  padding: 8px 10px;
   font-weight: 800;
-  font-size: 0.88rem;
-  white-space: nowrap;
+  font-size: 0.8rem;
+  line-height: 1.15;
+  white-space: normal;
+  width: min(100%, 132px);
+  text-align: center;
 }
 
 .status-pill .material-symbols-outlined {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .status-dot {
@@ -131,6 +139,7 @@
   height: 12px;
   border-radius: 999px;
   background: currentColor;
+  flex-shrink: 0;
 }
 
 .status-active {
@@ -212,5 +221,11 @@
 
   .user-search-group {
     min-width: 100%;
+  }
+
+  .status-pill {
+    width: 100%;
+    max-width: 124px;
+    margin-inline: auto;
   }
 }

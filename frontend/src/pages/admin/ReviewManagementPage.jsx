@@ -230,7 +230,7 @@ const ReviewManagementPage = () => {
         setUsingFallback(true);
         setError(
           fetchError.message ||
-            "Reviews could not be loaded from the API. Demo data is being shown.",
+            "Không thể tải danh sách đánh giá từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
         );
       } finally {
         if (isMounted) {
@@ -293,11 +293,11 @@ const ReviewManagementPage = () => {
   const visiblePages = buildPagination(page, reviewsPage.totalPages || 0);
 
   const ratingChips = [
-    { label: "All", value: "" },
+    { label: "Tất cả", value: "" },
     { label: "5", value: 5 },
     { label: "4", value: 4 },
     { label: "3", value: 3 },
-    { label: "Low", value: 2 },
+    { label: "Thấp", value: 2 },
   ];
 
   const handleOpenDetail = async (reviewId) => {
@@ -312,7 +312,7 @@ const ReviewManagementPage = () => {
       setDetailReview(mockReviewDetails[reviewId] || null);
       setDetailError(
         fetchError.message ||
-          "Review detail could not be loaded from the API. Showing demo detail if available.",
+          "Không thể tải chi tiết đánh giá từ API. Hệ thống sẽ hiển thị dữ liệu mẫu nếu có.",
       );
     } finally {
       setIsDetailLoading(false);
@@ -349,7 +349,7 @@ const ReviewManagementPage = () => {
       setUsingFallback(false);
       setError("");
     } catch (deleteError) {
-      setError(deleteError.message || "Unable to delete this review.");
+      setError(deleteError.message || "Không thể xóa đánh giá này.");
     } finally {
       setDeletingId(null);
       setPendingDeleteReview(null);
@@ -365,9 +365,9 @@ const ReviewManagementPage = () => {
               <span className="material-symbols-outlined">monitoring</span>
             </div>
             <div>
-              <h1 className="review-page-title mb-2">Review Management</h1>
+              <h1 className="review-page-title mb-2">Quản lý đánh giá</h1>
               <p className="review-page-subtitle mb-0">
-                Manage and moderate customer feedback for your fleet.
+                Quản lý và kiểm duyệt phản hồi của khách hàng cho đội xe.
               </p>
             </div>
           </div>
@@ -376,7 +376,7 @@ const ReviewManagementPage = () => {
         <div className="review-hero-stats">
           <Card className="review-summary-card shadow-sm border-0">
             <Card.Body>
-              <div className="review-summary-label">AVG. RATING</div>
+              <div className="review-summary-label">ĐIỂM TRUNG BÌNH</div>
               <div className="review-summary-value-row">
                 <div className="review-summary-value">
                   {reviewStats.average.toFixed(1)}
@@ -388,7 +388,7 @@ const ReviewManagementPage = () => {
 
           <Card className="review-summary-card shadow-sm border-0">
             <Card.Body>
-              <div className="review-summary-label">RESOLUTION RATE</div>
+              <div className="review-summary-label">TỶ LỆ TÍCH CỰC</div>
               <div className="review-summary-trend">
                 {reviewStats.resolutionRate}%
                 <span className="material-symbols-outlined">trending_up</span>
@@ -408,7 +408,7 @@ const ReviewManagementPage = () => {
         <Card.Body className="p-4 p-xl-4">
           <Row className="g-3 align-items-center">
             <Col xl={7}>
-              <div className="review-filter-label mb-3">FILTER BY RATING</div>
+              <div className="review-filter-label mb-3">LỌC THEO ĐÁNH GIÁ</div>
               <div className="review-rating-chip-row">
                 {ratingChips.map((chip) => {
                   const isActive = String(selectedRating) === String(chip.value);
@@ -424,9 +424,9 @@ const ReviewManagementPage = () => {
                       }}
                     >
                       <span>{chip.label}</span>
-                      {chip.label !== "All" ? (
+                      {chip.label !== "Tất cả" ? (
                         <span className="material-symbols-outlined">
-                          {chip.label === "Low" ? "south_east" : "star"}
+                          {chip.label === "Thấp" ? "south_east" : "star"}
                         </span>
                       ) : null}
                     </button>
@@ -442,7 +442,7 @@ const ReviewManagementPage = () => {
                   onChange={(event) => {
                     setSearchKeyword(event.target.value);
                   }}
-                  placeholder="Filter by customer or vehicle name"
+                  placeholder="Lọc theo tên khách hàng hoặc tên xe"
                   className="review-vehicle-input"
                 />
               </div>
@@ -466,7 +466,7 @@ const ReviewManagementPage = () => {
               <div className="review-stat-number">
                 {formatNumber(reviewStats.positive)}
               </div>
-              <div className="review-stat-text">Positive Reviews</div>
+              <div className="review-stat-text">Đánh giá tích cực</div>
             </Card.Body>
           </Card>
         </Col>
@@ -485,7 +485,7 @@ const ReviewManagementPage = () => {
               <div className="review-stat-number">
                 {formatNumber(reviewStats.lowRated)}
               </div>
-              <div className="review-stat-text">Pending Complaints</div>
+              <div className="review-stat-text">Phản hồi cần chú ý</div>
             </Card.Body>
           </Card>
         </Col>
@@ -493,9 +493,9 @@ const ReviewManagementPage = () => {
         <Col xl={6}>
           <Card className="review-tip-box border-0 shadow-sm h-100">
             <Card.Body className="d-flex flex-column justify-content-center">
-              <div className="review-tip-label">Pro Tip</div>
+              <div className="review-tip-label">Gợi ý</div>
               <div className="review-tip-copy">
-                Respond to 1-star reviews within 2 hours to improve retention.
+                Phản hồi các đánh giá 1 sao trong vòng 2 giờ để cải thiện tỷ lệ giữ chân.
               </div>
               <div className="review-tip-watermark">
                 <span className="material-symbols-outlined">social_leaderboard</span>
@@ -510,12 +510,12 @@ const ReviewManagementPage = () => {
           <Table className="align-middle mb-0 review-management-table">
             <thead>
               <tr>
-                <th>CUSTOMER</th>
-                <th>VEHICLE</th>
-                <th>RATING</th>
-                <th>COMMENT</th>
-                <th>DATE</th>
-                <th>ACTIONS</th>
+                <th>KHÁCH HÀNG</th>
+                <th>XE</th>
+                <th>ĐÁNH GIÁ</th>
+                <th>NỘI DUNG</th>
+                <th>NGÀY</th>
+                <th>THAO TÁC</th>
               </tr>
             </thead>
             <tbody>
@@ -528,7 +528,7 @@ const ReviewManagementPage = () => {
               ) : filteredReviews.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-muted py-5">
-                    No reviews found for the selected filters.
+                    Không có đánh giá nào phù hợp với bộ lọc đã chọn.
                   </td>
                 </tr>
               ) : (
@@ -596,9 +596,9 @@ const ReviewManagementPage = () => {
         <Card.Body className="review-table-footer">
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
             <div className="review-records-text">
-              Showing {startItem} to {endItem} of{" "}
+              Hiển thị {startItem} đến {endItem} trên tổng{" "}
               {formatNumber(searchKeyword.trim() ? filteredReviews.length : reviewsPage.totalElements)}{" "}
-              entries
+              mục
             </div>
 
             <Pagination className="mb-0 review-pagination">
@@ -648,11 +648,11 @@ const ReviewManagementPage = () => {
         centered
       >
         <Modal.Header closeButton className="review-detail-header">
-          <Modal.Title>Delete Review</Modal.Title>
+          <Modal.Title>Xóa đánh giá</Modal.Title>
         </Modal.Header>
         <Modal.Body className="review-detail-body pt-2">
           <p className="mb-2">
-            Are you sure you want to delete this review?
+            Bạn có chắc muốn xóa đánh giá này?
           </p>
           {pendingDeleteReview ? (
             <div className="text-muted small">
@@ -666,7 +666,7 @@ const ReviewManagementPage = () => {
             onClick={() => setPendingDeleteReview(null)}
             disabled={Boolean(deletingId)}
           >
-            Cancel
+            Hủy
           </Button>
           <Button
             variant="danger"
@@ -676,7 +676,7 @@ const ReviewManagementPage = () => {
             {deletingId ? (
               <>
                 <Spinner animation="border" size="sm" className="me-2" />
-                Deleting...
+                Đang xóa...
               </>
             ) : (
               "OK"
@@ -694,9 +694,10 @@ const ReviewManagementPage = () => {
         }}
         centered
         size="lg"
+        dialogClassName="review-detail-modal"
       >
         <Modal.Header closeButton className="review-detail-header">
-          <Modal.Title>Review Detail</Modal.Title>
+          <Modal.Title>Chi tiết đánh giá</Modal.Title>
         </Modal.Header>
         <Modal.Body className="review-detail-body">
           {detailError ? <Alert variant="warning">{detailError}</Alert> : null}
@@ -707,28 +708,28 @@ const ReviewManagementPage = () => {
             </div>
           ) : !detailReview ? (
             <div className="text-center text-muted py-4">
-              Review detail is unavailable.
+              Không có dữ liệu chi tiết đánh giá.
             </div>
           ) : (
             <div className="review-detail-grid">
               <div className="review-detail-section">
-                <div className="review-detail-section-title">Review Info</div>
+                <div className="review-detail-section-title">Thông tin đánh giá</div>
                 <div className="review-detail-field-grid">
                   <Form.Group>
-                    <Form.Label>Rating</Form.Label>
+                    <Form.Label>Điểm đánh giá</Form.Label>
                     <div className="review-detail-stars-shell">
                       {renderStars(detailReview.rating, "review-detail-stars")}
                     </div>
                   </Form.Group>
                   <Form.Group>
-                    <Form.Label>Created At</Form.Label>
+                    <Form.Label>Ngày tạo</Form.Label>
                     <Form.Control
                       value={formatDate(detailReview.createdAt)}
                       readOnly
                     />
                   </Form.Group>
                   <Form.Group className="review-detail-full">
-                    <Form.Label>Comment</Form.Label>
+                    <Form.Label>Nội dung</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={4}
@@ -740,10 +741,10 @@ const ReviewManagementPage = () => {
               </div>
 
               <div className="review-detail-section">
-                <div className="review-detail-section-title">Customer Info</div>
+                <div className="review-detail-section-title">Thông tin khách hàng</div>
                 <div className="review-detail-field-grid">
                   <Form.Group>
-                    <Form.Label>Full Name</Form.Label>
+                    <Form.Label>Họ tên</Form.Label>
                     <Form.Control value={detailReview.userName || ""} readOnly />
                   </Form.Group>
                   <Form.Group>
@@ -751,25 +752,25 @@ const ReviewManagementPage = () => {
                     <Form.Control value={detailReview.userEmail || ""} readOnly />
                   </Form.Group>
                   <Form.Group>
-                    <Form.Label>Phone</Form.Label>
+                    <Form.Label>Số điện thoại</Form.Label>
                     <Form.Control value={detailReview.userPhone || ""} readOnly />
                   </Form.Group>
                 </div>
               </div>
 
               <div className="review-detail-section">
-                <div className="review-detail-section-title">Vehicle Info</div>
+                <div className="review-detail-section-title">Thông tin xe</div>
                 <div className="review-detail-field-grid">
                   <Form.Group>
-                    <Form.Label>Brand</Form.Label>
+                    <Form.Label>Hãng xe</Form.Label>
                     <Form.Control value={detailReview.vehicleBrand || ""} readOnly />
                   </Form.Group>
                   <Form.Group>
-                    <Form.Label>Model</Form.Label>
+                    <Form.Label>Dòng xe</Form.Label>
                     <Form.Control value={detailReview.vehicleModel || ""} readOnly />
                   </Form.Group>
                   <Form.Group>
-                    <Form.Label>License Plate</Form.Label>
+                    <Form.Label>Biển số</Form.Label>
                     <Form.Control
                       value={detailReview.licensePlate || ""}
                       readOnly
@@ -789,7 +790,7 @@ const ReviewManagementPage = () => {
               setDetailError("");
             }}
           >
-            Close
+            Đóng
           </Button>
         </Modal.Footer>
       </Modal>

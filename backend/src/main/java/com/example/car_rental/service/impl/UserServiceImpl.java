@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
 
-        if (!"customer".equalsIgnoreCase(user.getRole())) {
+        if (!"User".equalsIgnoreCase(user.getRole())) {
             throw new RuntimeException("User is not customer");
         }
 
@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
 
-        if (!"customer".equalsIgnoreCase(user.getRole())) {
+        if (!"User".equalsIgnoreCase(user.getRole())) {
             throw new RuntimeException("User is not customer");
         }
 
@@ -88,20 +88,20 @@ public class UserServiceImpl implements UserService {
         Instant last30Days = now.minus(30, ChronoUnit.DAYS);
 
         // Growth
-        long newCustomers7d = userRepository.countByRoleAndCreatedAtAfter("customer", last7Days);
+        long newCustomers7d = userRepository.countByRoleAndCreatedAtAfter("User", last7Days);
         long newOwners7d = userRepository.countByRoleAndCreatedAtAfter("owner", last7Days);
 
-        long newCustomers30d = userRepository.countByRoleAndCreatedAtAfter("customer", last30Days);
+        long newCustomers30d = userRepository.countByRoleAndCreatedAtAfter("User", last30Days);
         long newOwners30d = userRepository.countByRoleAndCreatedAtAfter("owner", last30Days);
 
         // Active
         long totalActive = userRepository.countByIsDeletedFalseAndVerifiedTrue();
-        long activeCustomers = userRepository.countByRoleAndIsDeletedFalseAndVerifiedTrue("customer");
+        long activeCustomers = userRepository.countByRoleAndIsDeletedFalseAndVerifiedTrue("User");
         long activeOwners = userRepository.countByRoleAndIsDeletedFalseAndVerifiedTrue("owner");
 
         // Inactive
         long totalInactive = userRepository.countByIsDeletedTrueOrVerifiedFalse();
-        long inactiveCustomers = userRepository.countByRoleAndIsDeletedTrueOrVerifiedFalse("customer");
+        long inactiveCustomers = userRepository.countByRoleAndIsDeletedTrueOrVerifiedFalse("User");
         long inactiveOwners = userRepository.countByRoleAndIsDeletedTrueOrVerifiedFalse("owner");
 
         return UserReportResponse.builder()
