@@ -80,7 +80,7 @@ public class BookingController {
     @GetMapping
     public ResponseData<List<OwnerBookingRequestResponse>> getBookingRequest(Authentication authentication) {
         List<OwnerBookingRequestResponse> bookingResponses = bookingService.getBookingRequest(authentication.getName());
-        return new ResponseData<>(200, "Get booking requests successfully", bookingResponses);
+        return new ResponseData<>(200, "Get owner vehicles successfully", bookingResponses);
     }
 
     @GetMapping("/my-trips")
