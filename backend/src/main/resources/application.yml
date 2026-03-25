@@ -1,10 +1,18 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 67198254147-81jgpgk95qr63ihlbjcv82h91ca91e24.apps.googleusercontent.com
+            client-secret: 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
+            scope: email, profile
   application:
     name: car-rental
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=car_rental;encrypt=false;trustServerCertificate=true
     username: sa
-    password: Abc@12345
+    password: Sql@123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   flyway:
     enabled: true
@@ -47,3 +55,5 @@ logging:
           orm:
             jdbc:
               bind: TRACE
+stripe:
+  secret-key: sk_test_51ReQxuGgt8YZtkKb4Xnt6UifVmfKzPREblewKu09HPVHWKDxKgWagIBfZS8SjsF6eOvEd5yMelP6zzvAnVTHWenT00KPqBFgVD
