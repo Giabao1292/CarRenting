@@ -1,12 +1,98 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Container,
+  Form,
+  Modal,
+  Row,
+  Spinner,
+} from "react-bootstrap";
+import { APP_ROUTES } from "../../app/routes";
 import AvatarUploader from "../../components/common/AvatarUploader";
 import { useAuth } from "../../context/AuthContext";
 import { uploadProfileAvatar } from "../../services/profile/profileAvatarService";
+import { createReview } from "../../services/profile/profileReviewService";
+import { getMyTrips } from "../../services/profile/profileTripService";
 import ProfileTripCard from "./components/ProfileTripCard";
 import ProfileSidebar from "./components/ProfileSidebar";
 import { profileData } from "./profileData";
+
+const DEFAULT_TRIP_IMAGE =
+  "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80";
+
+const formatCurrencyVnd = (value) => {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return "0đ";
+  }
+
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+const formatDateLabel = (value) => {
+  if (!value) {
+    return "--/--/----";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "--/--/----";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsed);
+};
+
+const resolveTripStatus = (trip) => {
+  const normalizedStatus = String(trip?.status || "").toLowerCase();
+  if (normalizedStatus === "completed") {
+    return { status: "Hoàn thành", statusKey: "completed" };
+  }
+
+  if (normalizedStatus === "cancelled") {
+    return { status: "Đã huỷ", statusKey: "cancelled" };
+  }
+
+  const pickupAt = trip?.pickupAt ? new Date(trip.pickupAt) : null;
+  if (pickupAt instanceof Date && !Number.isNaN(pickupAt.getTime())) {
+    if (pickupAt.getTime() > Date.now()) {
+      return { status: "Sắp diễn ra", statusKey: "upcoming" };
+    }
+  }
+
+  return { status: "Đang diễn ra", statusKey: "ongoing" };
+};
+
+const mapMyTripToCard = (trip) => {
+  const status = resolveTripStatus(trip);
+
+  return {
+    id: Number(trip?.bookingId || 0),
+    bookingId: Number(trip?.bookingId || 0),
+    vehicleId: Number(trip?.vehicleId || 0),
+    status: status.status,
+    statusKey: status.statusKey,
+    name: String(trip?.vehicleName || "Xe thuê").trim(),
+    category: "Xe tự lái",
+    dates: `${formatDateLabel(trip?.pickupAt)} - ${formatDateLabel(trip?.dropoffAt)}`,
+    location: String(trip?.pickupLocation || "Đang cập nhật").trim(),
+    access: "Nhận xe theo hướng dẫn từ chủ xe",
+    ownerPhone: String(trip?.ownerPhone || "").trim(),
+    price: formatCurrencyVnd(trip?.totalAmount),
+    image: String(trip?.vehicleImageUrl || "").trim() || DEFAULT_TRIP_IMAGE,
+  };
+};
 
 const StatusPill = ({ verified }) => (
   <button
@@ -30,6 +116,16 @@ const ProfileLayout = () => {
   const { authUser, updateUserAvatar } = useAuth();
   const contextAvatar = authUser?.avatar || "";
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [tripItems, setTripItems] = useState([]);
+  const [isTripsLoading, setIsTripsLoading] = useState(false);
+  const [tripsError, setTripsError] = useState("");
+  const [activeTripTab, setActiveTripTab] = useState("current");
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewTrip, setReviewTrip] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const activeSection = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -42,6 +138,59 @@ const ProfileLayout = () => {
     () => ({ ...profileData.user, avatar: displayAvatar }),
     [displayAvatar],
   );
+
+  const currentTrips = useMemo(
+    () =>
+      tripItems.filter(
+        (trip) =>
+          trip.statusKey !== "completed" && trip.statusKey !== "cancelled",
+      ),
+    [tripItems],
+  );
+
+  const historyTrips = useMemo(
+    () =>
+      tripItems.filter(
+        (trip) =>
+          trip.statusKey === "completed" || trip.statusKey === "cancelled",
+      ),
+    [tripItems],
+  );
+
+  const visibleTrips = useMemo(() => {
+    return activeTripTab === "history" ? historyTrips : currentTrips;
+  }, [activeTripTab, currentTrips, historyTrips]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadTrips = async () => {
+      setIsTripsLoading(true);
+      setTripsError("");
+
+      try {
+        const trips = await getMyTrips();
+        if (!isCancelled) {
+          setTripItems(trips.map(mapMyTripToCard));
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setTripsError(error?.message || "Không thể tải chuyến của bạn.");
+          setTripItems([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsTripsLoading(false);
+        }
+      }
+    };
+
+    loadTrips();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const handleAvatarUploaded = (uploadedAvatarUrl) => {
     setAvatarUrl(uploadedAvatarUrl);
@@ -56,6 +205,54 @@ const ProfileLayout = () => {
 
     if (sectionKey === "account") {
       navigate(location.pathname, { replace: true });
+    }
+  };
+
+  const handleOpenReviewModal = (trip) => {
+    setReviewTrip(trip);
+    setReviewRating(0);
+    setReviewComment("");
+    setReviewError("");
+    setShowReviewModal(true);
+  };
+
+  const handleSubmitReview = async () => {
+    setReviewError("");
+
+    if (!reviewTrip?.bookingId || !reviewTrip?.vehicleId) {
+      setReviewError("Thiếu thông tin chuyến để gửi đánh giá.");
+      return;
+    }
+
+    if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+      setReviewError("Vui lòng chọn số sao đánh giá.");
+      return;
+    }
+
+    if (!String(reviewComment || "").trim()) {
+      setReviewError("Vui lòng nhập nội dung đánh giá.");
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      await createReview({
+        bookingId: reviewTrip.bookingId,
+        vehicleId: reviewTrip.vehicleId,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+
+      setShowReviewModal(false);
+      const carDetailsPath = APP_ROUTES.CAR_DETAILS.replace(
+        ":id",
+        String(reviewTrip.vehicleId),
+      );
+      navigate(`${carDetailsPath}#reviews`);
+    } catch (error) {
+      setReviewError(error?.message || "Không thể gửi đánh giá.");
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -74,30 +271,143 @@ const ProfileLayout = () => {
           <Col lg={9} className="d-grid gap-4">
             {activeSection === "trips" ? (
               <>
-                <Card className="border-0 shadow-sm rounded-4 profile-my-trips-hero">
-                  <Card.Body className="p-4 p-md-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <div>
-                      <h4 className="mb-1 fw-bold">Chuyến của tôi</h4>
-                      <p className="mb-0 text-muted">
-                        Theo dõi tất cả chuyến đi đã đặt và sắp diễn ra của bạn.
-                      </p>
+                <Card className="border-0 shadow-sm rounded-4 profile-trips-shell">
+                  <Card.Body className="p-4 p-md-5">
+                    <h3 className="profile-trips-title">Chuyến của tôi</h3>
+
+                    <div
+                      className="profile-trips-tabs"
+                      role="tablist"
+                      aria-label="Bộ lọc chuyến đi"
+                    >
+                      <button
+                        type="button"
+                        className={`profile-trips-tab ${
+                          activeTripTab === "current" ? "is-active" : ""
+                        }`}
+                        onClick={() => setActiveTripTab("current")}
+                      >
+                        Chuyến hiện tại
+                      </button>
+                      <button
+                        type="button"
+                        className={`profile-trips-tab ${
+                          activeTripTab === "history" ? "is-active" : ""
+                        }`}
+                        onClick={() => setActiveTripTab("history")}
+                      >
+                        Lịch sử chuyến
+                      </button>
                     </div>
-                    <div className="profile-my-trips-count">
-                      <span className="profile-my-trips-count-number">
-                        {profileData.trips.length}
-                      </span>
-                      <span className="profile-my-trips-count-label">
-                        chuyến
-                      </span>
+
+                    <div className="d-grid gap-3 mt-4">
+                      {isTripsLoading ? (
+                        <div className="text-center py-4">
+                          <Spinner animation="border" role="status" />
+                        </div>
+                      ) : null}
+
+                      {!isTripsLoading && tripsError ? (
+                        <Alert variant="warning" className="mb-0">
+                          {tripsError}
+                        </Alert>
+                      ) : null}
+
+                      {!isTripsLoading &&
+                      !tripsError &&
+                      visibleTrips.length === 0 ? (
+                        <div className="profile-trips-empty-state">
+                          <div className="profile-trips-empty-state__icon-wrap">
+                            <span className="material-symbols-outlined">
+                              directions_car
+                            </span>
+                          </div>
+                          <p className="profile-trips-empty-state__text">
+                            Bạn chưa có chuyến
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {!isTripsLoading && !tripsError && visibleTrips.length > 0
+                        ? visibleTrips.map((trip) => (
+                            <ProfileTripCard
+                              key={`${activeTripTab}-${trip.id}`}
+                              trip={trip}
+                              onOpenReview={handleOpenReviewModal}
+                            />
+                          ))
+                        : null}
                     </div>
                   </Card.Body>
                 </Card>
 
-                <div className="d-grid gap-3">
-                  {profileData.trips.map((trip) => (
-                    <ProfileTripCard key={trip.id} trip={trip} />
-                  ))}
-                </div>
+                <Modal
+                  show={showReviewModal}
+                  onHide={() => setShowReviewModal(false)}
+                  centered
+                >
+                  <Modal.Header closeButton>
+                    <Modal.Title>Đánh giá chuyến đi</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <div className="d-grid gap-3">
+                      <div>
+                        <div className="fw-semibold mb-1">
+                          {reviewTrip?.name || "Xe thuê"}
+                        </div>
+                        <div className="text-muted small">
+                          Chọn số sao của bạn
+                        </div>
+                      </div>
+
+                      <div
+                        className="profile-review-stars"
+                        role="radiogroup"
+                        aria-label="Chọn số sao"
+                      >
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            className={`profile-review-star ${
+                              reviewRating >= star ? "is-active" : ""
+                            }`}
+                            onClick={() => setReviewRating(star)}
+                            aria-label={`${star} sao`}
+                          >
+                            <span className="material-symbols-outlined">
+                              star
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        value={reviewComment}
+                        onChange={(event) =>
+                          setReviewComment(event.target.value)
+                        }
+                        placeholder="Hãy chia sẻ trải nghiệm chuyến đi của bạn..."
+                      />
+
+                      {reviewError ? (
+                        <Alert variant="warning" className="mb-0 py-2">
+                          {reviewError}
+                        </Alert>
+                      ) : null}
+
+                      <Button
+                        className="btn-primary-custom"
+                        onClick={handleSubmitReview}
+                        disabled={isSubmittingReview}
+                      >
+                        {isSubmittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                      </Button>
+                    </div>
+                  </Modal.Body>
+                </Modal>
               </>
             ) : (
               <>
@@ -128,7 +438,7 @@ const ProfileLayout = () => {
                           luggage
                         </span>
                         <span className="profile-trip-summary-count">
-                          {profileData.user.tripCount}
+                          {tripItems.length}
                         </span>
                         <span className="profile-trip-summary-label">
                           chuyến

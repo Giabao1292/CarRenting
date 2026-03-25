@@ -1,6 +1,6 @@
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 
-const ProfileTripCard = ({ trip }) => {
+const ProfileTripCard = ({ trip, onOpenReview }) => {
   const statusKey = String(trip.statusKey || "upcoming").toLowerCase();
   const isUpcoming = statusKey === "upcoming";
   const isCompleted = statusKey === "completed";
@@ -9,6 +9,10 @@ const ProfileTripCard = ({ trip }) => {
     : isUpcoming
       ? "primary"
       : "warning";
+  const normalizedOwnerPhone = String(trip.ownerPhone || "")
+    .replace(/\s+/g, "")
+    .trim();
+  const canCallOwner = normalizedOwnerPhone.length > 0;
 
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden card-hover">
@@ -76,12 +80,24 @@ const ProfileTripCard = ({ trip }) => {
             </div>
 
             <div className="d-flex flex-wrap gap-2">
-              <Button className="btn-primary-custom fw-bold px-4">
-                Xem chi tiết chuyến
-              </Button>
-              <Button variant="outline-secondary" className="fw-semibold">
+              <Button
+                as="a"
+                href={canCallOwner ? `tel:${normalizedOwnerPhone}` : undefined}
+                variant="outline-secondary"
+                className="fw-semibold"
+                disabled={!canCallOwner}
+              >
                 Liên hệ chủ xe
               </Button>
+              {isCompleted ? (
+                <Button
+                  type="button"
+                  onClick={() => onOpenReview?.(trip)}
+                  className="btn-primary-custom fw-bold px-4"
+                >
+                  Đánh giá chi tiết chuyến đi
+                </Button>
+              ) : null}
             </div>
           </Card.Body>
         </Col>

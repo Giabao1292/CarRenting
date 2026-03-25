@@ -3,6 +3,7 @@ import { Button, Card, Form, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes";
 import BookingDateRangePicker from "../../common/BookingDateRangePicker";
+import BookingLocationPicker from "../../common/BookingLocationPicker";
 import BookingTimePicker from "../../common/BookingTimePicker";
 
 const getDateKey = (date) => {
@@ -358,8 +359,11 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
     resolvedInitialSchedule.returnTime,
   );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [voucherSearch, setVoucherSearch] = useState("");
+  const [pickupLocation, setPickupLocation] = useState(car?.location || "");
+  const [pickupLocationDetails, setPickupLocationDetails] = useState(null);
 
   const bestPromotion = useMemo(
     () => getBestPromotion(promotions),
@@ -378,8 +382,11 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
     setTripEndTime(resolvedInitialSchedule.returnTime);
     setSelectingDateField("start");
     setActivePicker("");
+    setPickupLocation(car?.location || "");
+    setPickupLocationDetails(null);
   }, [
     car?.id,
+    car?.location,
     resolvedInitialSchedule.pickupDate,
     resolvedInitialSchedule.pickupTime,
     resolvedInitialSchedule.returnDate,
@@ -553,7 +560,8 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
           pickupTime: tripStartTime,
           dropoffDate: tripEndDate,
           dropoffTime: tripEndTime,
-          location: car?.location || "",
+          location: pickupLocation || car?.location || "",
+          locationDetails: pickupLocationDetails,
           dayUnits,
           extraHourUnits,
           dayOriginalSubtotal,
@@ -671,7 +679,18 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
           </div>
           <div className="p-2">
             <small className="text-muted d-block">Pickup & Return</small>
-            <strong>{car?.location || "Chưa có địa chỉ"}</strong>
+            <button
+              type="button"
+              className="booking-location-trigger"
+              onClick={() => setShowLocationModal(true)}
+            >
+              <span className="material-symbols-outlined">
+                edit_location_alt
+              </span>
+              <strong>
+                {pickupLocation || car?.location || "Chưa có địa chỉ"}
+              </strong>
+            </button>
           </div>
         </div>
 
@@ -767,6 +786,28 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
           ))}
         </div>
       </Card>
+
+      <Modal
+        show={showLocationModal}
+        onHide={() => setShowLocationModal(false)}
+        centered
+        dialogClassName="hero-search-modal"
+      >
+        <Modal.Header closeButton className="hero-search-modal__header">
+          <Modal.Title className="hero-search-modal__title">
+            Pickup & Return
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="hero-search-modal__body">
+          <BookingLocationPicker
+            value={pickupLocation}
+            onSelectLocation={setPickupLocation}
+            onSelectLocationDetail={setPickupLocationDetails}
+            onClose={() => setShowLocationModal(false)}
+            enableManualAddress
+          />
+        </Modal.Body>
+      </Modal>
 
       <Modal
         show={showScheduleModal}
