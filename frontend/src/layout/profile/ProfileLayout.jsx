@@ -16,6 +16,10 @@ import AvatarUploader from "../../components/common/AvatarUploader";
 import { useAuth } from "../../context/AuthContext";
 import { changePassword } from "../../services/authService";
 import { uploadProfileAvatar } from "../../services/profile/profileAvatarService";
+import {
+  getMyLicenseProfile,
+  submitMyLicenseProfile,
+} from "../../services/profile/profileLicenseService";
 import { createReview } from "../../services/profile/profileReviewService";
 import { getMyTrips } from "../../services/profile/profileTripService";
 import ProfileTripCard from "./components/ProfileTripCard";
@@ -53,6 +57,19 @@ const formatDateLabel = (value) => {
     month: "2-digit",
     year: "numeric",
   }).format(parsed);
+};
+
+const formatDateForInput = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
 };
 
 const resolveTripStatus = (trip) => {
@@ -118,6 +135,46 @@ const StatusPill = ({ verified }) => (
   </button>
 );
 
+const LicenseStatusPill = ({ status }) => {
+  const normalizedStatus = String(status || "NOT_SUBMITTED")
+    .trim()
+    .toLowerCase();
+
+  if (normalizedStatus === "approved") {
+    return <StatusPill verified />;
+  }
+
+  if (normalizedStatus === "pending") {
+    return (
+      <button
+        type="button"
+        className="profile-status-pill profile-status-pill-unverified"
+      >
+        <span className="material-symbols-outlined profile-status-pill-icon">
+          schedule
+        </span>
+        Chờ xác thực
+      </button>
+    );
+  }
+
+  if (normalizedStatus === "rejected") {
+    return (
+      <button
+        type="button"
+        className="profile-status-pill profile-status-pill-rejected"
+      >
+        <span className="material-symbols-outlined profile-status-pill-icon">
+          cancel
+        </span>
+        Bị từ chối
+      </button>
+    );
+  }
+
+  return <StatusPill verified={false} />;
+};
+
 const ProfileLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,7 +197,49 @@ const ProfileLayout = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [licenseProfile, setLicenseProfile] = useState(null);
+  const [isLicenseLoading, setIsLicenseLoading] = useState(false);
+  const [isLicenseSubmitting, setIsLicenseSubmitting] = useState(false);
+  const [licenseNumberInput, setLicenseNumberInput] = useState("");
+  const [licenseFrontFile, setLicenseFrontFile] = useState(null);
+  const [licenseBackFile, setLicenseBackFile] = useState(null);
+  const [licenseFrontPreview, setLicenseFrontPreview] = useState("");
+  const [licenseBackPreview, setLicenseBackPreview] = useState("");
+  const [licenseMessage, setLicenseMessage] = useState("");
+  const [licenseError, setLicenseError] = useState("");
   const isReviewReadOnly = Boolean(reviewTrip?.reviewed);
+  const normalizedLicenseStatus = String(
+    licenseProfile?.verificationStatus || "NOT_SUBMITTED",
+  )
+    .trim()
+    .toLowerCase();
+  const isLicenseLocked =
+    normalizedLicenseStatus === "pending" ||
+    normalizedLicenseStatus === "approved";
+  const shouldShowLicenseNotes = normalizedLicenseStatus !== "approved";
+
+  const licenseStatusMeta =
+    normalizedLicenseStatus === "approved"
+      ? {
+          label: "APPROVED",
+          className: "profile-license-status profile-license-status-approved",
+        }
+      : normalizedLicenseStatus === "pending"
+        ? {
+            label: "PENDING",
+            className: "profile-license-status profile-license-status-pending",
+          }
+        : normalizedLicenseStatus === "rejected"
+          ? {
+              label: "REJECTED",
+              className:
+                "profile-license-status profile-license-status-rejected",
+            }
+          : {
+              label: "NOT_SUBMITTED",
+              className:
+                "profile-license-status profile-license-status-default",
+            };
 
   const activeSection = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -217,6 +316,52 @@ const ProfileLayout = () => {
       isCancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadLicenseProfile = async () => {
+      setIsLicenseLoading(true);
+      setLicenseError("");
+
+      try {
+        const profile = await getMyLicenseProfile();
+        if (isCancelled) {
+          return;
+        }
+
+        setLicenseProfile(profile);
+        setLicenseNumberInput(String(profile?.licenseNumber || ""));
+      } catch (error) {
+        if (!isCancelled) {
+          setLicenseError(
+            error?.message || "Không thể tải thông tin giấy phép lái xe.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLicenseLoading(false);
+        }
+      }
+    };
+
+    loadLicenseProfile();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (licenseFrontPreview) {
+        URL.revokeObjectURL(licenseFrontPreview);
+      }
+      if (licenseBackPreview) {
+        URL.revokeObjectURL(licenseBackPreview);
+      }
+    };
+  }, [licenseFrontPreview, licenseBackPreview]);
 
   const handleAvatarUploaded = (uploadedAvatarUrl) => {
     setAvatarUrl(uploadedAvatarUrl);
@@ -325,6 +470,109 @@ const ProfileLayout = () => {
       setIsSubmittingReview(false);
     }
   };
+
+  const handleSelectLicenseFront = (event) => {
+    if (isLicenseLocked) {
+      return;
+    }
+
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (licenseFrontPreview) {
+      URL.revokeObjectURL(licenseFrontPreview);
+    }
+
+    setLicenseFrontFile(file);
+    setLicenseFrontPreview(URL.createObjectURL(file));
+  };
+
+  const handleSelectLicenseBack = (event) => {
+    if (isLicenseLocked) {
+      return;
+    }
+
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (licenseBackPreview) {
+      URL.revokeObjectURL(licenseBackPreview);
+    }
+
+    setLicenseBackFile(file);
+    setLicenseBackPreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmitLicenseProfile = async (event) => {
+    event.preventDefault();
+    setLicenseError("");
+    setLicenseMessage("");
+
+    if (isLicenseLocked) {
+      return;
+    }
+
+    const normalizedLicenseNumber = String(licenseNumberInput || "").trim();
+    if (!normalizedLicenseNumber) {
+      setLicenseError("Vui lòng nhập số GPLX.");
+      return;
+    }
+
+    const hasFrontImage = Boolean(
+      licenseFrontFile || licenseProfile?.licenseFrontUrl,
+    );
+    const hasBackImage = Boolean(
+      licenseBackFile || licenseProfile?.licenseBackUrl,
+    );
+
+    if (!hasFrontImage || !hasBackImage) {
+      setLicenseError("Vui lòng tải đủ ảnh mặt trước và mặt sau GPLX.");
+      return;
+    }
+
+    try {
+      setIsLicenseSubmitting(true);
+      const updated = await submitMyLicenseProfile({
+        licenseNumber: normalizedLicenseNumber,
+        frontImage: licenseFrontFile,
+        backImage: licenseBackFile,
+      });
+
+      setLicenseProfile(updated);
+      setLicenseNumberInput(
+        String(updated?.licenseNumber || normalizedLicenseNumber),
+      );
+      setLicenseMessage("Đã nộp giấy phép lái xe thành công.");
+
+      if (licenseFrontPreview) {
+        URL.revokeObjectURL(licenseFrontPreview);
+      }
+      if (licenseBackPreview) {
+        URL.revokeObjectURL(licenseBackPreview);
+      }
+      setLicenseFrontPreview("");
+      setLicenseBackPreview("");
+      setLicenseFrontFile(null);
+      setLicenseBackFile(null);
+    } catch (error) {
+      setLicenseError(
+        error?.message || "Không thể nộp hồ sơ giấy phép lái xe.",
+      );
+    } finally {
+      setIsLicenseSubmitting(false);
+    }
+  };
+
+  const resolvedLicenseVerified =
+    Boolean(licenseProfile?.verified) || profileData.license.verified;
+  const resolvedLicenseFrontPreview =
+    licenseFrontPreview || String(licenseProfile?.licenseFrontUrl || "");
+  const resolvedLicenseBackPreview =
+    licenseBackPreview || String(licenseProfile?.licenseBackUrl || "");
 
   return (
     <section className="mt-5 bg-light-subtle profile-account-page">
@@ -718,64 +966,169 @@ const ProfileLayout = () => {
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center gap-2">
                         <h4 className="mb-0 fw-semibold">Giấy phép lái xe</h4>
-                        <StatusPill verified={profileData.license.verified} />
+                        <LicenseStatusPill
+                          status={licenseProfile?.verificationStatus}
+                        />
                       </div>
-                      <Button
-                        variant="outline-dark"
-                        className="rounded-3 px-3 d-inline-flex align-items-center gap-1"
-                      >
-                        Chỉnh sửa
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ fontSize: 16 }}
-                        >
-                          edit
-                        </span>
-                      </Button>
                     </div>
 
-                    <div className="profile-note profile-note-warning mb-2">
-                      Khách thuê cần xác thực GPLX chính chủ động thời phải là
-                      người trực tiếp làm thủ tục khi nhận xe.
-                    </div>
-                    <div className="profile-note profile-note-success mb-4">
-                      Hình chụp cần thấy được ảnh đại diện và số GPLX rõ nét.
-                    </div>
-
-                    <Row className="g-4">
-                      <Col md={5}>
-                        <div className="small mb-2">Ảnh mặt trước GPLX</div>
-                        <div className="profile-upload-box">
-                          <span
-                            className="material-symbols-outlined text-success"
-                            style={{ fontSize: 44 }}
-                          >
-                            upload
-                          </span>
+                    {shouldShowLicenseNotes ? (
+                      <>
+                        <div className="profile-note profile-note-warning mb-2">
+                          Khách thuê cần xác thực GPLX chính chủ động thời phải
+                          là người trực tiếp làm thủ tục khi nhận xe.
                         </div>
-                      </Col>
-
-                      <Col md={7}>
-                        <div className="small mb-2">Thông tin chung</div>
-                        <div className="d-grid gap-3">
-                          <Form.Control
-                            value={profileData.license.number}
-                            placeholder="Nhập số GPLX đã cấp"
-                            readOnly
-                          />
-                          <Form.Control
-                            value={profileData.license.fullName}
-                            placeholder="Nhập đầy đủ họ tên"
-                            readOnly
-                          />
-                          <Form.Control
-                            value={profileData.license.birthDate}
-                            placeholder="Ngày sinh"
-                            readOnly
-                          />
+                        <div className="profile-note profile-note-success mb-4">
+                          Hình chụp cần thấy được ảnh đại diện và số GPLX rõ
+                          nét.
                         </div>
-                      </Col>
-                    </Row>
+                      </>
+                    ) : null}
+
+                    {isLicenseLoading ? (
+                      <div className="text-center py-4">
+                        <Spinner animation="border" role="status" />
+                      </div>
+                    ) : (
+                      <Form onSubmit={handleSubmitLicenseProfile}>
+                        <Row className="g-4">
+                          <Col md={6}>
+                            <div className="small mb-2">Ảnh mặt trước GPLX</div>
+                            {resolvedLicenseFrontPreview ? (
+                              <div className="profile-upload-preview">
+                                <img
+                                  src={resolvedLicenseFrontPreview}
+                                  alt="Ảnh mặt trước GPLX"
+                                />
+                              </div>
+                            ) : isLicenseLocked ? (
+                              <div className="profile-upload-box text-muted">
+                                Chưa có ảnh mặt trước
+                              </div>
+                            ) : (
+                              <label
+                                className="profile-upload-box w-100"
+                                htmlFor="license-front-upload"
+                              >
+                                <span
+                                  className="material-symbols-outlined text-success"
+                                  style={{ fontSize: 44 }}
+                                >
+                                  upload
+                                </span>
+                              </label>
+                            )}
+                            {!isLicenseLocked ? (
+                              <Form.Control
+                                id="license-front-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleSelectLicenseFront}
+                                className="mt-2"
+                              />
+                            ) : null}
+                          </Col>
+
+                          <Col md={6}>
+                            <div className="small mb-2">Ảnh mặt sau GPLX</div>
+                            {resolvedLicenseBackPreview ? (
+                              <div className="profile-upload-preview">
+                                <img
+                                  src={resolvedLicenseBackPreview}
+                                  alt="Ảnh mặt sau GPLX"
+                                />
+                              </div>
+                            ) : isLicenseLocked ? (
+                              <div className="profile-upload-box text-muted">
+                                Chưa có ảnh mặt sau
+                              </div>
+                            ) : (
+                              <label
+                                className="profile-upload-box w-100"
+                                htmlFor="license-back-upload"
+                              >
+                                <span
+                                  className="material-symbols-outlined text-success"
+                                  style={{ fontSize: 44 }}
+                                >
+                                  upload
+                                </span>
+                              </label>
+                            )}
+                            {!isLicenseLocked ? (
+                              <Form.Control
+                                id="license-back-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleSelectLicenseBack}
+                                className="mt-2"
+                              />
+                            ) : null}
+                          </Col>
+
+                          <Col md={12}>
+                            <div className="small mb-2">
+                              Thông tin trong profile người dùng
+                            </div>
+                            <div className="d-grid gap-3">
+                              <Form.Control
+                                value={licenseNumberInput}
+                                onChange={(event) =>
+                                  setLicenseNumberInput(event.target.value)
+                                }
+                                placeholder="Nhập số GPLX đã cấp"
+                                readOnly={isLicenseLocked}
+                              />
+                              <Form.Control
+                                value={String(
+                                  licenseProfile?.fullName ||
+                                    profileUser.name ||
+                                    "",
+                                )}
+                                placeholder="Họ và tên"
+                                readOnly
+                              />
+                              <Form.Control
+                                value={formatDateForInput(licenseProfile?.dob)}
+                                placeholder="Ngày sinh"
+                                readOnly
+                              />
+                              <Form.Control
+                                value={String(licenseProfile?.phone || "")}
+                                placeholder="Số điện thoại"
+                                readOnly
+                              />
+                            </div>
+                          </Col>
+                        </Row>
+
+                        {licenseError ? (
+                          <Alert variant="warning" className="mt-3 mb-0 py-2">
+                            {licenseError}
+                          </Alert>
+                        ) : null}
+
+                        {licenseMessage ? (
+                          <Alert variant="success" className="mt-3 mb-0 py-2">
+                            {licenseMessage}
+                          </Alert>
+                        ) : null}
+
+                        {!isLicenseLocked ? (
+                          <div className="mt-3 d-flex justify-content-end">
+                            <Button
+                              type="submit"
+                              className="btn-primary-custom px-4"
+                              disabled={isLicenseSubmitting}
+                            >
+                              {isLicenseSubmitting
+                                ? "Đang nộp..."
+                                : "Nộp giấy phép lái xe"}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </Form>
+                    )}
                   </Card.Body>
                 </Card>
               </>
