@@ -4,6 +4,7 @@ import com.example.car_rental.dto.response.AdminMonthlyRevenueResponse;
 import com.example.car_rental.dto.response.AdminOwnerRevenueResponse;
 import com.example.car_rental.dto.response.AdminPaymentResponse;
 import com.example.car_rental.dto.response.AdminRevenueResponse;
+import com.example.car_rental.dto.response.ResponseData;
 import com.example.car_rental.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,10 +19,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService adminPaymentService;
+    private final PaymentService paymentService;
 
     @GetMapping("/admin")
-    public Page<AdminPaymentResponse> getAllPayments(
+    public ResponseData<Page<AdminPaymentResponse>> getAllPayments(
             @RequestParam(required = false) String providerTxnId,
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String status,
@@ -36,7 +37,7 @@ public class PaymentController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        return adminPaymentService.getAllPayments(
+        Page<AdminPaymentResponse> response = paymentService.getAllPayments(
                 providerTxnId,
                 provider,
                 status,
@@ -49,35 +50,40 @@ public class PaymentController {
                 sortBy,
                 sortDir
         );
+        return new ResponseData<>(200, "Get payments successfully", response);
     }
 
     @GetMapping("/admin/revenue/today")
-    public AdminRevenueResponse getRevenueToday() {
-        return adminPaymentService.getRevenueToday();
+    public ResponseData<AdminRevenueResponse> getRevenueToday() {
+        AdminRevenueResponse response = paymentService.getRevenueToday();
+        return new ResponseData<>(200, "Get today's revenue successfully", response);
     }
 
     @GetMapping("/admin/revenue/date")
-    public AdminRevenueResponse getRevenueByDate(
+    public ResponseData<AdminRevenueResponse> getRevenueByDate(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        return adminPaymentService.getRevenueByDate(date);
+        AdminRevenueResponse response = paymentService.getRevenueByDate(date);
+        return new ResponseData<>(200, "Get revenue by date successfully", response);
     }
 
     @GetMapping("/admin/revenue/monthly")
-    public List<AdminMonthlyRevenueResponse> getMonthlyRevenue(
+    public ResponseData<List<AdminMonthlyRevenueResponse>> getMonthlyRevenue(
             @RequestParam Integer year
     ) {
-        return adminPaymentService.getMonthlyRevenue(year);
+        List<AdminMonthlyRevenueResponse> response = paymentService.getMonthlyRevenue(year);
+        return new ResponseData<>(200, "Get monthly revenue successfully", response);
     }
 
     @GetMapping("/admin/revenue/owners")
-    public List<AdminOwnerRevenueResponse> getOwnerRevenue(
+    public ResponseData<List<AdminOwnerRevenueResponse>> getOwnerRevenue(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return adminPaymentService.getOwnerRevenue(fromDate, toDate);
+        List<AdminOwnerRevenueResponse> response = paymentService.getOwnerRevenue(fromDate, toDate);
+        return new ResponseData<>(200, "Get owner revenue successfully", response);
     }
 }

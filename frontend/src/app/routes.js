@@ -10,8 +10,10 @@ export const APP_ROUTES = {
   ADMIN_DASHBOARD: "/dashboard/admin",
   ADMIN_CARS: "/dashboard/admin/cars",
   ADMIN_USERS: "/dashboard/admin/users",
+  ADMIN_OWNERS: "/dashboard/admin/owners",
   ADMIN_BOOKINGS: "/dashboard/admin/bookings",
   ADMIN_PAYMENTS: "/dashboard/admin/payments",
   ADMIN_REVIEWS: "/dashboard/admin/reviews",
+  ADMIN_PROMOTIONS: "/dashboard/admin/promotions",
   PROFILE_VERIFICATION: "/profile/verification",
 };

@@ -1,6 +1,8 @@
 package com.example.car_rental.repository;
 
 import com.example.car_rental.model.Promotion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,4 +53,9 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
             @Param("username") String username,
             @Param("now") LocalDateTime now
     );
+    boolean existsByCode(String code);
+
+    boolean existsByCodeAndIdNot(String code, Integer id);
+
+    Page<Promotion> findByCodeContainingIgnoreCase(String code, Pageable pageable);
 }
