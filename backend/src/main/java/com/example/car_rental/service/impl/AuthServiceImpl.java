@@ -2,6 +2,7 @@ package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.request.LoginRequest;
 import com.example.car_rental.dto.request.RegisterRequest;
+import com.example.car_rental.dto.request.ChangePasswordRequest;
 import com.example.car_rental.dto.request.VerifyRequestDTO;
 import com.example.car_rental.dto.response.TokenResponse;
 import com.example.car_rental.exception.ResourceNotFoundException;
@@ -34,7 +35,6 @@ public class AuthServiceImpl implements AuthenticationService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     // private final VerificationTokenRepository verificationTokenRepository;
-    private final MailService mailService;
     private final UserValidator userValidator;
     private final VerificationTokenService verificationTokenService;
     private final VerificationTokenRepository verificationTokenRepository;
@@ -44,11 +44,13 @@ public class AuthServiceImpl implements AuthenticationService {
     public TokenResponse authenticate(LoginRequest request) {
         log.info("Starting Authenticate");
         User user = userService.findByEmail(request.getEmail());
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         log.info("Ending Authenticate");
-        return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).avatar(user.getAvatar()).role(user.getRole()).email(user.getEmail()).build();
+        return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).avatar(user.getAvatar())
+                .role(user.getRole()).email(user.getEmail()).build();
     }
 
     @Transactional
@@ -68,7 +70,8 @@ public class AuthServiceImpl implements AuthenticationService {
             if (existingUser.getFullName() == null || existingUser.getFullName().isBlank()) {
                 existingUser.setFullName(fullName);
             }
-            if ((existingUser.getAvatar() == null || existingUser.getAvatar().isBlank()) && avatar != null && !avatar.isBlank()) {
+            if ((existingUser.getAvatar() == null || existingUser.getAvatar().isBlank()) && avatar != null
+                    && !avatar.isBlank()) {
                 existingUser.setAvatar(avatar);
             }
             if (!Boolean.TRUE.equals(existingUser.getVerified())) {
@@ -94,7 +97,9 @@ public class AuthServiceImpl implements AuthenticationService {
             throw new IllegalStateException("User account has been blocked");
         }
 
-        return TokenResponse.builder().accessToken(jwtService.generateToken(user)).refreshToken(jwtService.generateRefreshToken(user)).avatar(user.getAvatar()).role(user.getRole()).email(user.getEmail()).build();
+        return TokenResponse.builder().accessToken(jwtService.generateToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user)).avatar(user.getAvatar()).role(user.getRole())
+                .email(user.getEmail()).build();
     }
 
     @Override
@@ -130,12 +135,38 @@ public class AuthServiceImpl implements AuthenticationService {
     //
     @Override
     public TokenResponse verifyTokenRegister(VerifyRequestDTO verifyRequestDTO) {
-        VerificationToken token = verificationTokenRepository.findByTokenAndEmailAndExpiryDateIsAfterAndUsed(verifyRequestDTO.getToken(), verifyRequestDTO.getEmail(), Instant.now(), false).orElseThrow(() -> new ResourceNotFoundException("Token không hợp lệ"));
+        VerificationToken token = verificationTokenRepository
+                .findByTokenAndEmailAndExpiryDateIsAfterAndUsed(verifyRequestDTO.getToken(),
+                        verifyRequestDTO.getEmail(), Instant.now(), false)
+                .orElseThrow(() -> new ResourceNotFoundException("Token không hợp lệ"));
         if (token != null) {
             token.setUsed(true);
             verificationTokenRepository.save(token);
         }
         return userService.saveUser(verifyRequestDTO.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String userEmail, ChangePasswordRequest request) {
+        User user = userRepository.findUserByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Mật khẩu hiện tại không chính xác");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Mật khẩu mới phải khác mật khẩu hiện tại");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
     }
     //
     // @Override

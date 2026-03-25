@@ -104,7 +104,11 @@ const TopNav = () => {
               <Nav.Link as={Link} to={ownerEntryRoute} className="text-dark">
                 {ownerEntryLabel}
               </Nav.Link>
-              <Nav.Link as={Link} to={APP_ROUTES.PROFILE} className="text-dark">
+              <Nav.Link
+                as={Link}
+                to={`${APP_ROUTES.PROFILE}?tab=trips`}
+                className="text-dark"
+              >
                 Chuyến của tôi
               </Nav.Link>
             </Nav>

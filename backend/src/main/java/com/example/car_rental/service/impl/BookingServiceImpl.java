@@ -2,6 +2,7 @@ package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.response.*;
 import com.example.car_rental.model.Booking;
+import com.example.car_rental.model.User;
 import com.example.car_rental.model.Vehicle;
 import com.example.car_rental.model.VehicleImage;
 import com.example.car_rental.repository.BookingRepository;
@@ -233,10 +234,12 @@ public class BookingServiceImpl implements BookingService {
         return ((Number) value).intValue();
     }
 
+
     private Long toLong(Object value) {
         if (value == null) return 0L;
         return ((Number) value).longValue();
     }
+
 
     private BigDecimal toBigDecimal(Object value) {
         if (value == null) return BigDecimal.ZERO;
@@ -255,12 +258,13 @@ public class BookingServiceImpl implements BookingService {
         return LocalDateTime.parse(value.toString().replace(" ", "T"));
     }
 
+
     @Override
     public List<OwnerBookingRequestResponse> getBookingRequest(String userEmail) {
-        List<Booking> bookings = bookingRepository.findAllByBookingItemsVehicleOwnerUserEmailAndStatus(userEmail, "pending");
+        List<Booking> bookings = bookingRepository
+                .findAllByBookingItemsVehicleOwnerUserEmailAndStatus(userEmail, "pending");
         return bookings.stream().flatMap(booking -> booking.getBookingItems().stream()
-                .map(item ->
-                {
+                .map(item -> {
                     Vehicle vehicle = item.getVehicle();
                     String imageUrl = vehicle.getVehicleImages()
                             .stream()
@@ -270,8 +274,10 @@ public class BookingServiceImpl implements BookingService {
                             .orElse(null);
                     return OwnerBookingRequestResponse.builder()
                             .bookingId(booking.getId())
-                            .pickupAt(LocalDateTime.ofInstant(booking.getPickupAt(), ZoneId.systemDefault()))
-                            .dropoffAt(LocalDateTime.ofInstant(booking.getDropoffAt(), ZoneId.systemDefault()))
+                            .pickupAt(LocalDateTime.ofInstant(booking.getPickupAt(),
+                                    ZoneId.systemDefault()))
+                            .dropoffAt(LocalDateTime.ofInstant(booking.getDropoffAt(),
+                                    ZoneId.systemDefault()))
                             .totalAmount(booking.getTotalAmount())
                             .status(booking.getStatus())
                             .vehicleName(vehicle.getBrand() + " " + vehicle.getModel())
@@ -279,4 +285,46 @@ public class BookingServiceImpl implements BookingService {
                             .build();
                 })).toList();
     }
+
+    @Override
+    public List<MyTripResponse> getMyTrips(String userEmail) {
+        User user = userRepository.findUserByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Object[]> rows = bookingRepository.findMyTripsRaw(user.getId());
+        return rows.stream()
+                .map(row -> MyTripResponse.builder()
+                        .bookingId(toInteger(row[0]))
+                        .bookingCode(toStringValue(row[1]))
+                        .status(toStringValue(row[2]))
+                        .pickupAt(toLocalDateTime(row[3]))
+                        .dropoffAt(toLocalDateTime(row[4]))
+                        .createdAt(toLocalDateTime(row[5]))
+                        .totalAmount(toBigDecimal(row[6]))
+                        .currency(toStringValue(row[7]))
+                        .vehicleId(toInteger(row[8]))
+                        .vehicleName(normalizeWhitespace(toStringValue(row[9])))
+                        .vehicleImageUrl(toStringValue(row[10]))
+                        .ownerPhone(toStringValue(row[11]))
+                        .pickupLocation(toStringValue(row[12]))
+                        .reviewId(toInteger(row[13]))
+                        .reviewRating(toShort(row[14]))
+                        .reviewComment(toStringValue(row[15]))
+                        .build())
+                .toList();
+    }
+
+    private Short toShort(Object value) {
+        if (value == null)
+            return null;
+        return ((Number) value).shortValue();
+    }
+
+    private String normalizeWhitespace(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.trim().replaceAll("\\s+", " ");
+    }
+
 }

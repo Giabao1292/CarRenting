@@ -2,9 +2,7 @@ import { Badge, Card, ListGroup } from "react-bootstrap";
 
 const navItems = [
   { key: "account", label: "Tài khoản của tôi", icon: "person" },
-  { key: "favorites", label: "Xe yêu thích", icon: "favorite" },
   { key: "trips", label: "Chuyến của tôi", icon: "directions_car" },
-  { key: "addresses", label: "Địa chỉ của tôi", icon: "location_on" },
   { key: "password", label: "Đổi mật khẩu", icon: "lock" },
   { key: "logout", label: "Đăng xuất", icon: "logout", isLogout: true },
 ];

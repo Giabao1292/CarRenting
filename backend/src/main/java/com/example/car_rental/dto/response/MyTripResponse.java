@@ -24,4 +24,7 @@ public class MyTripResponse {
     private String ownerPhone;
 
     private String pickupLocation;
+    private Integer reviewId;
+    private Short reviewRating;
+    private String reviewComment;
 }
