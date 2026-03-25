@@ -40,6 +40,7 @@ const AuthModal = ({
   const [registerServerSuccess, setRegisterServerSuccess] = useState("");
   const [verifyServerError, setVerifyServerError] = useState("");
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
   const [isVerifySubmitting, setIsVerifySubmitting] = useState(false);
 
@@ -183,6 +184,23 @@ const AuthModal = ({
       setRegisterServerError(serverMessage);
     } finally {
       setIsRegisterSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoginServerError("");
+
+    try {
+      setIsGoogleSubmitting(true);
+      const loggedUser = await authService.loginWithGoogle();
+      onLoginSuccess?.(loggedUser);
+      onHide();
+    } catch (error) {
+      const serverMessage =
+        error?.message || "Đăng nhập Google thất bại, vui lòng thử lại.";
+      setLoginServerError(serverMessage);
+    } finally {
+      setIsGoogleSubmitting(false);
     }
   };
 
@@ -375,9 +393,28 @@ const AuthModal = ({
               <Button
                 type="submit"
                 className="btn-primary-custom w-100 auth-submit-btn"
-                disabled={isLoginSubmitting}
+                disabled={isLoginSubmitting || isGoogleSubmitting}
               >
                 {isLoginSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+              </Button>
+
+              <div className="auth-divider">
+                <span>hoặc</span>
+              </div>
+
+              <Button
+                type="button"
+                variant="light"
+                className="w-100 auth-google-btn"
+                onClick={handleGoogleLogin}
+                disabled={isLoginSubmitting || isGoogleSubmitting}
+              >
+                <span className="auth-google-badge" aria-hidden="true">
+                  G
+                </span>
+                {isGoogleSubmitting
+                  ? "Đang mở Google..."
+                  : "Đăng nhập với Google"}
               </Button>
             </Form>
 

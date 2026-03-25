@@ -538,7 +538,36 @@ const BookingCard = ({ car, promotions = [], initialSchedule = null }) => {
   };
 
   const handleBookNow = () => {
-    navigate(APP_ROUTES.PAYMENT);
+    navigate(APP_ROUTES.PAYMENT, {
+      state: {
+        paymentDraft: {
+          bookingId:
+            Number(initialSchedule?.bookingId || 0) > 0
+              ? Number(initialSchedule.bookingId)
+              : null,
+          carId: car?.id || null,
+          carName: car?.model || "Xe thuê",
+          className: car?.specs?.join(" • ") || "",
+          image: car?.heroImages?.[0] || "",
+          pickupDate: tripStartDate,
+          pickupTime: tripStartTime,
+          dropoffDate: tripEndDate,
+          dropoffTime: tripEndTime,
+          location: car?.location || "",
+          dayUnits,
+          extraHourUnits,
+          dayOriginalSubtotal,
+          hourlySubtotal,
+          rentalSubtotal,
+          discountAmount,
+          serviceFee,
+          totalPrice,
+          promotionCode: selectedPromotion?.code || "",
+          discountPercent,
+          currency: "VND",
+        },
+      },
+    });
   };
 
   const handleApplyPromotion = (promotionId) => {

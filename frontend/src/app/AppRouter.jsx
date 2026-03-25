@@ -32,6 +32,14 @@ const AppRouter = () => {
             <Route path={APP_ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
             <Route path={APP_ROUTES.PAYMENT} element={<PaymentPage />} />
             <Route
+              path={APP_ROUTES.PAYMENT_SUCCESS}
+              element={<BookingSuccessPage />}
+            />
+            <Route
+              path={APP_ROUTES.PAYMENT_CANCEL}
+              element={<BookingSuccessPage />}
+            />
+            <Route
               path={APP_ROUTES.BOOKING_SUCCESS}
               element={<BookingSuccessPage />}
             />

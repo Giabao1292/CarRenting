@@ -1,13 +1,13 @@
 import { Button, Card } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "../../../app/routes";
 
-const BookingSummaryCard = ({ booking }) => {
-  const navigate = useNavigate();
-
-  const handlePayNow = () => {
-    navigate(APP_ROUTES.BOOKING_SUCCESS);
-  };
+const BookingSummaryCard = ({
+  booking,
+  selectedMethod,
+  onConfirm,
+  isSubmitting,
+  errorMessage,
+}) => {
+  const canCheckout = Boolean(selectedMethod === "stripe");
 
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
@@ -75,14 +75,21 @@ const BookingSummaryCard = ({ booking }) => {
             <small className="text-muted">Total due today</small>
             <div className="fs-4 fw-bold">{booking.total}</div>
           </div>
-          <small className="text-muted">USD</small>
+          <small className="text-muted">VND</small>
         </div>
+
+        {errorMessage ? (
+          <div className="small text-danger">{errorMessage}</div>
+        ) : null}
 
         <Button
           className="btn-primary-custom py-3 fw-bold"
-          onClick={handlePayNow}
+          onClick={onConfirm}
+          disabled={!canCheckout || isSubmitting}
         >
-          Pay {booking.total}
+          {isSubmitting
+            ? "Đang chuyển đến Stripe..."
+            : `Thanh toán ${booking.total}`}
         </Button>
       </Card.Body>
     </Card>

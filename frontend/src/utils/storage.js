@@ -39,6 +39,12 @@ export const getAuthUser = () => {
     }
 
     return {
+      fullName:
+        parsedUser.fullName ||
+        parsedUser.name ||
+        parsedUser.displayName ||
+        parsedUser.email ||
+        "",
       name:
         parsedUser.name ||
         parsedUser.fullName ||

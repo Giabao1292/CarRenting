@@ -4,6 +4,8 @@ export const APP_ROUTES = {
   CAR_DETAILS: "/car-details/:id",
   OWNER_REGISTER: "/owner/register",
   PAYMENT: "/payment",
+  PAYMENT_SUCCESS: "/payment/success",
+  PAYMENT_CANCEL: "/payment/cancel",
   BOOKING_SUCCESS: "/booking-success",
   PROFILE: "/profile",
   OWNER_DASHBOARD: "/dashboard/owner",

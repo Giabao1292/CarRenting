@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthenticationService {
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         log.info("Ending Authenticate");
-        return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).avatar(user.getAvatar()).role(user.getRole()).build();
+        return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).avatar(user.getAvatar()).role(user.getRole()).email(user.getEmail()).build();
     }
 
     @Transactional
@@ -94,7 +94,7 @@ public class AuthServiceImpl implements AuthenticationService {
             throw new IllegalStateException("User account has been blocked");
         }
 
-        return TokenResponse.builder().accessToken(jwtService.generateToken(user)).refreshToken(jwtService.generateRefreshToken(user)).avatar(user.getAvatar()).role(user.getRole()).build();
+        return TokenResponse.builder().accessToken(jwtService.generateToken(user)).refreshToken(jwtService.generateRefreshToken(user)).avatar(user.getAvatar()).role(user.getRole()).email(user.getEmail()).build();
     }
 
     @Override
