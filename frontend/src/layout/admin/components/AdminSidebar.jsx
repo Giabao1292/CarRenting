@@ -28,6 +28,11 @@ const menuGroups = [
         to: APP_ROUTES.ADMIN_BOOKINGS,
       },
       {
+        label: "License Management",
+        icon: "credit_card",
+        to: APP_ROUTES.ADMIN_LICENSES,
+      },
+      {
         label: "Payment Management",
         icon: "account_balance_wallet",
         to: APP_ROUTES.ADMIN_PAYMENTS,

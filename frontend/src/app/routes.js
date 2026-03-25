@@ -14,6 +14,7 @@ export const APP_ROUTES = {
   ADMIN_USERS: "/dashboard/admin/users",
   ADMIN_OWNERS: "/dashboard/admin/owners",
   ADMIN_BOOKINGS: "/dashboard/admin/bookings",
+  ADMIN_LICENSES: "/dashboard/admin/licenses",
   ADMIN_PAYMENTS: "/dashboard/admin/payments",
   ADMIN_REVIEWS: "/dashboard/admin/reviews",
   ADMIN_PROMOTIONS: "/dashboard/admin/promotions",

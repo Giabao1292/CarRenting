@@ -1,0 +1,237 @@
+.license-management-page {
+  --license-ink: #24303b;
+  --license-muted: #6d7882;
+  --license-border: #e6ebef;
+  --license-surface: #f7fafc;
+  --license-green: #14804a;
+  --license-gold: #b67b12;
+  --license-red: #bf3544;
+  color: var(--license-ink);
+}
+
+.license-hero-card {
+  background:
+    radial-gradient(circle at top left, rgba(20, 128, 74, 0.18), transparent 32%),
+    linear-gradient(135deg, #f6fbf7 0%, #f8fbff 100%);
+  border: 1px solid rgba(20, 128, 74, 0.08);
+  border-radius: 28px;
+  padding: 2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.license-hero-eyebrow,
+.license-stat-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--license-muted);
+}
+
+.license-page-title {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 800;
+}
+
+.license-page-subtitle {
+  max-width: 720px;
+  color: var(--license-muted);
+  font-size: 1rem;
+}
+
+.license-stat-strip {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.license-mini-stat {
+  min-width: 180px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(36, 48, 59, 0.08);
+  border-radius: 22px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.license-mini-stat .material-symbols-outlined {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e6f6ed;
+  color: var(--license-green);
+}
+
+.license-mini-label,
+.license-stat-note,
+.license-user-meta {
+  color: var(--license-muted);
+}
+
+.license-mini-value,
+.license-stat-value {
+  font-size: 1.8rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.license-stat-card,
+.license-tip-card,
+.license-filter-card {
+  border-radius: 24px;
+}
+
+.license-stat-card .card-body,
+.license-tip-card .card-body {
+  padding: 1.4rem;
+}
+
+.license-stat-card.approved {
+  background: #f4fbf6;
+}
+
+.license-stat-card.rejected {
+  background: #fff7f8;
+}
+
+.license-tip-copy {
+  margin-top: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #31404d;
+}
+
+.license-search-input {
+  min-height: 52px;
+  border-radius: 16px;
+}
+
+.license-status-tabs {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.license-status-tab {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1.1rem;
+  background: #eef3f7;
+  color: #55616b;
+  font-weight: 700;
+  transition: all 0.18s ease;
+}
+
+.license-status-tab.active {
+  background: linear-gradient(135deg, #14804a 0%, #1d9b5c 100%);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(20, 128, 74, 0.18);
+}
+
+.license-management-table thead th {
+  background: #f9fbfc;
+  color: #67727d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1rem;
+  border-bottom: 1px solid var(--license-border);
+}
+
+.license-management-table tbody td {
+  padding: 1rem;
+  border-color: var(--license-border);
+  vertical-align: middle;
+}
+
+.license-user-name {
+  font-weight: 700;
+  color: var(--license-ink);
+}
+
+.license-table-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--license-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.license-detail-section-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5f6d78;
+}
+
+.license-detail-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.license-detail-grid span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #73808a;
+  margin-bottom: 0.25rem;
+}
+
+.license-detail-grid strong {
+  color: var(--license-ink);
+  word-break: break-word;
+}
+
+.license-reason-box {
+  border-radius: 18px;
+  padding: 1rem;
+  background: #fff4f5;
+  border: 1px solid rgba(191, 53, 68, 0.12);
+}
+
+.license-preview-image {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 18px;
+  background: #e8edf1;
+}
+
+.license-image-placeholder {
+  min-height: 340px;
+  border-radius: 18px;
+  border: 1px dashed #c6d0d8;
+  color: var(--license-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+}
+
+@media (max-width: 991px) {
+  .license-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .license-status-tabs {
+    justify-content: flex-start;
+  }
+}
