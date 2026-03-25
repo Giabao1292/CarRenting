@@ -44,7 +44,7 @@ import java.time.Duration;
 public class AppConfig implements WebMvcConfigurer, WebSecurityCustomizer {
 
     private String[] WHITE_LIST = { "/api/auth/**", "/api/cars/**", "/api/promotions/**", "/api/owners/**",
-            "/api/reviews/**", "/oauth2/**", "/login/**", "/auth/**" };
+            "/api/reviews/**", "/oauth2/**", "/login/**", "/auth/**", "/api/licenses/**" };
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;
@@ -78,7 +78,7 @@ public class AppConfig implements WebMvcConfigurer, WebSecurityCustomizer {
                         .requestMatchers("/api/reviews/admin/**").permitAll()
                         .requestMatchers("/api/payments/admin/**").permitAll()
                         .requestMatchers("/api/users/admin/**").permitAll()
-                        .requestMatchers("/api/admin/dashboard").permitAll()
+                        .requestMatchers("/api/admin/dashboard").hasRole("admin")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/auth/oauth2/success", true)

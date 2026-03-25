@@ -223,6 +223,17 @@ const normalizeStatus = (status) => {
   return normalized;
 };
 
+const getPaymentStatusLabel = (status) => {
+  const normalized = normalizeStatus(status);
+
+  if (normalized === "PAID") return "Đã thanh toán";
+  if (normalized === "PENDING") return "Chờ xử lý";
+  if (normalized === "REFUND") return "Hoàn tiền";
+  if (normalized === "FAILED") return "Thất bại";
+
+  return normalized;
+};
+
 const buildPagination = (currentPage, totalPages) => {
   if (totalPages <= 1) return [];
 
@@ -317,7 +328,7 @@ const PaymentManagementPage = () => {
         setUsingFallback(true);
         setError(
           fetchError.message ||
-            "Payment transactions could not be loaded. Demo data is being shown.",
+            "Không thể tải giao dịch thanh toán. Hệ thống đang hiển thị dữ liệu mẫu.",
         );
       } finally {
         setIsLoadingTable(false);
@@ -366,7 +377,7 @@ const PaymentManagementPage = () => {
 
   const distribution = useMemo(() => {
     const totals = paymentsPage.content.reduce((accumulator, payment) => {
-      const provider = payment.provider || "Other";
+      const provider = payment.provider || "Khác";
       accumulator[provider] =
         (accumulator[provider] || 0) + (Number(payment.amount) || 0);
       return accumulator;
@@ -405,30 +416,30 @@ const PaymentManagementPage = () => {
 
     return [
       {
-        label: "Total Revenue",
+        label: "Tổng doanh thu",
         value: formatCompactCurrency(totalRevenue),
-        badge: "+ Live",
+        badge: "+ Trực tiếp",
         badgeTone: "success",
         icon: "account_balance_wallet",
         tone: "green",
       },
       {
-        label: "Monthly Revenue",
+        label: "Doanh thu tháng",
         value: formatCompactCurrency(currentMonthRevenue),
-        badge: `${new Date().toLocaleString("en-US", { month: "short" })}`,
+        badge: `${new Date().toLocaleString("vi-VN", { month: "short" })}`,
         badgeTone: "success",
         icon: "calendar_month",
         tone: "mint",
       },
       {
-        label: "Owner Payouts",
+        label: "Chi trả chủ xe",
         value: formatCompactCurrency(ownerPayouts),
         badge:
           paymentsPage.content.some(
             (payment) => normalizeStatus(payment.status) === "PENDING",
           )
-            ? "Pending"
-            : "Settled",
+            ? "Chờ xử lý"
+            : "Đã đối soát",
         badgeTone: paymentsPage.content.some(
           (payment) => normalizeStatus(payment.status) === "PENDING",
         )
@@ -438,9 +449,9 @@ const PaymentManagementPage = () => {
         tone: "cyan",
       },
       {
-        label: "Active Payments",
+        label: "Thanh toán đang xử lý",
         value: formatNumber(activePayments),
-        badge: "Today",
+        badge: "Hôm nay",
         badgeTone: "success",
         icon: "payments",
         tone: "lime",
@@ -476,9 +487,9 @@ const PaymentManagementPage = () => {
     <div className="payment-management-page d-grid gap-4">
       <div className="d-flex flex-column flex-xl-row justify-content-between gap-3 align-items-xl-center">
         <div>
-          <h1 className="payment-page-title mb-2">Payment Management</h1>
+          <h1 className="payment-page-title mb-2">Quản lý thanh toán</h1>
           <p className="payment-page-subtitle mb-0">
-            Manage transactions, track revenue, and monitor payment statuses.
+            Quản lý giao dịch, theo dõi doanh thu và giám sát trạng thái thanh toán.
           </p>
         </div>
 
@@ -488,7 +499,7 @@ const PaymentManagementPage = () => {
           onClick={() => setShowFilters((current) => !current)}
         >
           <span className="material-symbols-outlined">filter_alt</span>
-          Filter
+          Bộ lọc
         </Button>
       </div>
 
@@ -508,7 +519,7 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      Transaction ID
+                      Mã giao dịch
                     </Form.Label>
                     <Form.Control
                       value={providerTxnId}
@@ -520,7 +531,7 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      Booking ID
+                      ID đặt xe
                     </Form.Label>
                     <Form.Control
                       value={bookingId}
@@ -532,7 +543,7 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      User ID
+                      ID người dùng
                     </Form.Label>
                     <Form.Control
                       value={userId}
@@ -544,13 +555,13 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      Provider
+                      Cổng thanh toán
                     </Form.Label>
                     <Form.Select
                       value={selectedProvider}
                       onChange={(event) => setSelectedProvider(event.target.value)}
                     >
-                      <option value="">All Providers</option>
+                      <option value="">Tất cả cổng thanh toán</option>
                       {providerOptions.map((provider) => (
                         <option key={provider} value={provider}>
                           {provider}
@@ -562,16 +573,16 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      Status
+                      Trạng thái
                     </Form.Label>
                     <Form.Select
                       value={selectedStatus}
                       onChange={(event) => setSelectedStatus(event.target.value)}
                     >
-                      <option value="">All Statuses</option>
+                      <option value="">Tất cả trạng thái</option>
                       {PAYMENT_STATUSES.map((status) => (
                         <option key={status} value={status}>
-                          {status}
+                          {getPaymentStatusLabel(status)}
                         </option>
                       ))}
                     </Form.Select>
@@ -580,7 +591,7 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      From Date
+                      Từ ngày
                     </Form.Label>
                     <Form.Control
                       type="date"
@@ -593,7 +604,7 @@ const PaymentManagementPage = () => {
                 <Col md={6} xl={3}>
                   <Form.Group>
                     <Form.Label className="payment-filter-label">
-                      To Date
+                      Đến ngày
                     </Form.Label>
                     <Form.Control
                       type="date"
@@ -616,10 +627,10 @@ const PaymentManagementPage = () => {
                       className="rounded-pill px-4"
                       onClick={handleResetFilters}
                     >
-                      Reset
+                      Đặt lại
                     </Button>
                     <Button type="submit" className="btn-primary-custom rounded-pill px-4">
-                      Apply
+                      Áp dụng
                     </Button>
                   </div>
                 </Col>
@@ -678,9 +689,9 @@ const PaymentManagementPage = () => {
         <Card.Body className="p-4 p-xl-5 border-bottom">
           <div className="d-flex flex-column flex-xl-row justify-content-between gap-3 align-items-xl-center">
             <div>
-              <h2 className="payment-section-title mb-1">Recent Transactions</h2>
+              <h2 className="payment-section-title mb-1">Giao dịch gần đây</h2>
               <p className="payment-section-subtitle mb-0">
-                Real-time update from all payment gateways
+                Cập nhật theo thời gian thực từ các cổng thanh toán
               </p>
             </div>
 
@@ -693,7 +704,7 @@ const PaymentManagementPage = () => {
                   setPage(0);
                 }}
               >
-                <option value="">All Providers</option>
+                <option value="">Tất cả cổng thanh toán</option>
                 {providerOptions.map((provider) => (
                   <option key={provider} value={provider}>
                     {provider}
@@ -709,10 +720,10 @@ const PaymentManagementPage = () => {
                   setPage(0);
                 }}
               >
-                <option value="">All Statuses</option>
+                <option value="">Tất cả trạng thái</option>
                 {PAYMENT_STATUSES.map((status) => (
                   <option key={status} value={status}>
-                    {status}
+                    {getPaymentStatusLabel(status)}
                   </option>
                 ))}
               </Form.Select>
@@ -724,12 +735,12 @@ const PaymentManagementPage = () => {
           <Table className="align-middle mb-0 payment-transactions-table">
             <thead>
               <tr>
-                <th>Transaction ID</th>
-                <th>Customer Name</th>
-                <th>Amount</th>
-                <th>Provider</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th>Mã giao dịch</th>
+                <th>Khách hàng</th>
+                <th>Số tiền</th>
+                <th>Cổng thanh toán</th>
+                <th>Trạng thái</th>
+                <th>Ngày</th>
               </tr>
             </thead>
             <tbody>
@@ -742,7 +753,7 @@ const PaymentManagementPage = () => {
               ) : paymentsPage.content.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-muted py-5">
-                    No payments found for the selected filters.
+                    Không có giao dịch thanh toán phù hợp với bộ lọc đã chọn.
                   </td>
                 </tr>
               ) : (
@@ -786,7 +797,7 @@ const PaymentManagementPage = () => {
                         <span
                           className={`payment-status-text status-${normalizedStatus.toLowerCase()}`}
                         >
-                          {normalizedStatus}
+                          {getPaymentStatusLabel(normalizedStatus)}
                         </span>
                       </td>
                       <td>
@@ -804,7 +815,7 @@ const PaymentManagementPage = () => {
         <Card.Body className="p-4 p-xl-5 border-top bg-light-subtle">
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
             <div className="payment-records-text">
-              Showing {startItem} to {endItem} of {formatNumber(paymentsPage.totalElements)} records
+              Hiển thị {startItem} đến {endItem} trên tổng {formatNumber(paymentsPage.totalElements)} bản ghi
             </div>
 
             <Pagination className="mb-0 payment-pagination">
@@ -850,9 +861,9 @@ const PaymentManagementPage = () => {
             <Card.Body className="p-4 p-xl-5">
               <div className="d-flex justify-content-between align-items-start gap-3 mb-4">
                 <div>
-                  <h2 className="payment-section-title mb-1">Revenue Trends</h2>
+                  <h2 className="payment-section-title mb-1">Xu hướng doanh thu</h2>
                   <p className="payment-section-subtitle mb-0">
-                    Monthly growth analysis
+                    Phân tích tăng trưởng theo tháng
                   </p>
                 </div>
 
@@ -901,12 +912,12 @@ const PaymentManagementPage = () => {
           <Card className="border-0 shadow-sm rounded-5 h-100 payment-panel">
             <Card.Body className="p-4 p-xl-5 d-flex flex-column">
               <div>
-                <h2 className="payment-section-title mb-1">Payment Distribution</h2>
+                <h2 className="payment-section-title mb-1">Phân bổ thanh toán</h2>
               </div>
 
               <div className="d-grid gap-4 mt-5">
                 {distribution.length === 0 ? (
-                  <div className="text-muted">No provider data available.</div>
+                  <div className="text-muted">Không có dữ liệu theo cổng thanh toán.</div>
                 ) : (
                   distribution.map((item) => (
                     <div key={item.provider}>
@@ -928,14 +939,14 @@ const PaymentManagementPage = () => {
               </div>
 
               <div className="payment-distribution-footer mt-auto">
-                Data updated as of{" "}
+                Dữ liệu cập nhật đến{" "}
                 {todayRevenue?.date
                   ? new Intl.DateTimeFormat("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     }).format(new Date(todayRevenue.date))
-                  : "today"}
+                  : "hôm nay"}
               </div>
             </Card.Body>
           </Card>

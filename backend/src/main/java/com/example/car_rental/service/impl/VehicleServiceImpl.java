@@ -472,7 +472,7 @@ public class VehicleServiceImpl implements VehicleService {
                         throw new IllegalStateException("Only pending cars can be approved");
                 }
 
-                vehicle.setStatus("available");
+                vehicle.setStatus("inactive");
                 vehicle.setRejectionReason(null);
                 vehicle.setUpdatedAt(LocalDateTime.now());
 
