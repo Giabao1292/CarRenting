@@ -31,7 +31,7 @@ const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 const pluralizeBookings = (value) => {
   const count = Number(value) || 0;
-  return `${formatNumber(count)} booking${count === 1 ? "" : "s"}`;
+  return `${formatNumber(count)} lượt đặt`;
 };
 
 const normalizeImageUrl = (value) => {
@@ -71,7 +71,7 @@ const AdminDashboardPage = () => {
         });
       } catch (fetchError) {
         setDashboard(emptyDashboard);
-        setError(fetchError.message || "Unable to load admin dashboard");
+        setError(fetchError.message || "Không thể tải bảng điều khiển quản trị");
       } finally {
         setIsLoading(false);
       }
@@ -83,31 +83,31 @@ const AdminDashboardPage = () => {
   const stats = useMemo(
     () => [
       {
-        label: "Total Users",
+        label: "Tổng người dùng",
         value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalUsers),
-        meta: "Registered customers on the platform",
-        trend: "Users",
+        meta: "Khách hàng đã đăng ký trên nền tảng",
+        trend: "Người dùng",
         icon: "groups",
       },
       {
-        label: "Total Owners",
+        label: "Tổng chủ xe",
         value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalOwners),
-        meta: "Partners currently listing or managing vehicles",
-        trend: "Owners",
+        meta: "Đối tác đang đăng bán hoặc quản lý xe",
+        trend: "Chủ xe",
         icon: "badge",
       },
       {
-        label: "Available Cars",
+        label: "Xe sẵn sàng",
         value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalAvailableCars),
-        meta: "Vehicles ready for booking right now",
-        trend: "Inventory",
+        meta: "Các xe có thể đặt ngay lúc này",
+        trend: "Kho xe",
         icon: "directions_car",
       },
       {
-        label: "Revenue This Month",
+        label: "Doanh thu tháng này",
         value: isLoading ? <Spinner animation="border" size="sm" /> : formatCurrency(dashboard.revenueThisMonth),
-        meta: "Recognized revenue in the current month",
-        trend: "Revenue",
+        meta: "Doanh thu ghi nhận trong tháng hiện tại",
+        trend: "Doanh thu",
         icon: "payments",
         highlight: true,
       },
@@ -118,10 +118,10 @@ const AdminDashboardPage = () => {
   const topVehicles = useMemo(
     () =>
       (dashboard.topBookedVehicles || []).map((vehicle, index) => ({
-        key: vehicle?.vehicleId ?? `${vehicle?.vehicleName || "vehicle"}-${index}`,
+        key: vehicle?.vehicleId ?? `${vehicle?.vehicleName || "xe"}-${index}`,
         rank: index + 1,
         id: vehicle?.vehicleId ?? null,
-        name: vehicle?.vehicleName || "Unnamed vehicle",
+        name: vehicle?.vehicleName || "Xe chưa có tên",
         licensePlate: vehicle?.licensePlate || "--",
         ownerName: vehicle?.ownerName || "--",
         image: normalizeImageUrl(vehicle?.imageUrl),
@@ -137,10 +137,10 @@ const AdminDashboardPage = () => {
         <Card.Body className="p-4 p-lg-5">
           <div className="d-flex flex-column flex-xl-row align-items-xl-end justify-content-between gap-4">
             <div>
-              <div className="admin-overview-eyebrow mb-2">Admin overview</div>
-              <h1 className="fw-bold display-5 mb-2">Platform Overview</h1>
+              <div className="admin-overview-eyebrow mb-2">Tổng quan quản trị</div>
+              <h1 className="fw-bold display-5 mb-2">Tổng quan nền tảng</h1>
               <p className="admin-overview-subtitle mb-0">
-                Theo doi suc khoe he thong qua nguoi dung, doi tac, xe san sang va doanh thu thang hien tai.
+                Theo dõi sức khỏe hệ thống qua người dùng, đối tác, xe sẵn sàng và doanh thu tháng hiện tại.
               </p>
             </div>
             <div className="admin-overview-actions">
@@ -153,7 +153,7 @@ const AdminDashboardPage = () => {
                 <span className="material-symbols-outlined align-middle me-2">
                   directions_car
                 </span>
-                Manage Cars
+                Quản lý xe
               </Button>
               <Button
                 as={Link}
@@ -163,7 +163,7 @@ const AdminDashboardPage = () => {
                 <span className="material-symbols-outlined align-middle me-2">
                   book_online
                 </span>
-                View Bookings
+                Xem đặt xe
               </Button>
             </div>
           </div>
@@ -189,21 +189,21 @@ const AdminDashboardPage = () => {
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <div>
               <div className="admin-overview-section-title">
-                Top Booked Vehicles
+                Xe được đặt nhiều nhất
               </div>
               <div className="text-muted small mt-1">
-                Hien thi dung theo DTO backend: vehicle, chu xe, bien so, so luot dat va doanh thu.
+                Hiển thị đúng theo DTO backend: xe, chủ xe, biển số, số lượt đặt và doanh thu.
               </div>
             </div>
             <Badge bg="light" text="dark" pill className="px-3 py-2">
-              {formatNumber(topVehicles.length)} vehicles
+              {formatNumber(topVehicles.length)} xe
             </Badge>
           </div>
 
           {isLoading ? (
             <div className="admin-overview-empty">
               <Spinner animation="border" size="sm" className="me-2" />
-              Loading dashboard data...
+              Đang tải dữ liệu tổng quan...
             </div>
           ) : topVehicles.length ? (
             <div className="admin-overview-vehicles">
@@ -225,10 +225,10 @@ const AdminDashboardPage = () => {
                         {vehicle.name}
                       </div>
                       <div className="admin-overview-vehicle-subtext">
-                        Plate: {vehicle.licensePlate}
+                        Biển số: {vehicle.licensePlate}
                       </div>
                       <div className="admin-overview-vehicle-subtext">
-                        Owner: {vehicle.ownerName}
+                        Chủ xe: {vehicle.ownerName}
                       </div>
                     </div>
                   </div>
@@ -245,7 +245,7 @@ const AdminDashboardPage = () => {
             </div>
           ) : (
             <div className="admin-overview-empty">
-              Chua co du lieu top booked vehicles.
+              Chưa có dữ liệu xe được đặt nhiều.
             </div>
           )}
         </Card.Body>

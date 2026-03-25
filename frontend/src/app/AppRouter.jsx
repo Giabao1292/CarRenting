@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 import ErrorBoundary from "./ErrorBoundary";
 import { APP_ROUTES } from "./routes";
 import AdminLayout from "../layout/admin/AdminLayout";
@@ -7,6 +8,7 @@ import UserLayout from "../layout/user/UserLayout";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import BookingManagementPage from "../pages/admin/BookingManagementPage";
 import CarManagementPage from "../pages/admin/CarManagementPage";
+import LicenseManagementPage from "../pages/admin/LicenseManagementPage";
 import BookingSuccessPage from "../pages/user/BookingSuccessPage";
 import CarDetailsPage from "../pages/user/CarDetailsPage";
 import OwnerRegistrationPage from "../pages/user/OwnerRegistrationPage";
@@ -59,7 +61,13 @@ const AppRouter = () => {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          <Route element={<OwnerLayout />}>
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["OWNER"]}>
+                <OwnerLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route
               path={APP_ROUTES.OWNER_DASHBOARD}
               element={<OwnerDashboardPage />}
@@ -74,7 +82,13 @@ const AppRouter = () => {
             />
           </Route>
 
-          <Route element={<AdminLayout />}>
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route
               path={APP_ROUTES.ADMIN_DASHBOARD}
               element={<AdminDashboardPage />}
@@ -94,6 +108,10 @@ const AppRouter = () => {
             <Route
               path={APP_ROUTES.ADMIN_BOOKINGS}
               element={<BookingManagementPage />}
+            />
+            <Route
+              path={APP_ROUTES.ADMIN_LICENSES}
+              element={<LicenseManagementPage />}
             />
             <Route
               path={APP_ROUTES.ADMIN_PAYMENTS}

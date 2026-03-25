@@ -8,13 +8,12 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class AdminLicenseDetailResponse {
+public class AdminLicenseResponse {
     private Integer id;
     private Integer userId;
     private String userName;
     private String userEmail;
     private String userPhone;
-    private String userAddress;
     private String docType;
     private String docNumber;
     private String fileUrl;
@@ -23,5 +22,4 @@ public class AdminLicenseDetailResponse {
     private LocalDateTime createdAt;
     private String status;
     private String reason;
-
 }

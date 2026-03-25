@@ -131,7 +131,7 @@ const formatDiscountValue = (promotion) => {
 };
 
 const getDiscountTypeLabel = (type) =>
-  (type || "").toUpperCase() === "FIXED" ? "Fixed" : "Percentage";
+  (type || "").toUpperCase() === "FIXED" ? "Cố định" : "Phần trăm";
 
 const getDiscountTypeIcon = (type) =>
   (type || "").toUpperCase() === "FIXED" ? "local_atm" : "percent";
@@ -218,33 +218,33 @@ const validateForm = (formValues) => {
   const numericUsageLimit = Number(formValues.usageLimit);
 
   if (!formValues.code.trim()) {
-    errors.code = "Promo code is required.";
+    errors.code = "Vui lòng nhập mã khuyến mãi.";
   }
 
   if (formValues.discountValue === "" || Number.isNaN(numericDiscountValue)) {
-    errors.discountValue = "Discount value must be greater than 0.";
+    errors.discountValue = "Giá trị giảm phải lớn hơn 0.";
   } else if (numericDiscountValue <= 0) {
-    errors.discountValue = "Discount value must be greater than 0.";
+    errors.discountValue = "Giá trị giảm phải lớn hơn 0.";
   }
 
   if (normalizedType === "PERCENT") {
     if (numericDiscountValue < 1 || numericDiscountValue > 100) {
-      errors.discountValue = "Percentage must be between 1 and 100.";
+      errors.discountValue = "Phần trăm giảm phải nằm trong khoảng từ 1 đến 100.";
     }
   }
 
   if (formValues.usageLimit === "" || Number.isNaN(numericUsageLimit)) {
-    errors.usageLimit = "Usage limit is required.";
+    errors.usageLimit = "Vui lòng nhập số lượt sử dụng tối đa.";
   } else if (numericUsageLimit <= 0) {
-    errors.usageLimit = "Usage limit must be greater than 0.";
+    errors.usageLimit = "Số lượt sử dụng phải lớn hơn 0.";
   }
 
   if (!formValues.startAt) {
-    errors.startAt = "Start date is required.";
+    errors.startAt = "Vui lòng chọn thời gian bắt đầu.";
   }
 
   if (!formValues.endAt) {
-    errors.endAt = "End date is required.";
+    errors.endAt = "Vui lòng chọn thời gian kết thúc.";
   }
 
   if (
@@ -254,7 +254,7 @@ const validateForm = (formValues) => {
     endAt &&
     startAt >= endAt
   ) {
-    errors.endAt = "End date must be after start date.";
+    errors.endAt = "Thời gian kết thúc phải sau thời gian bắt đầu.";
   }
 
   return errors;
@@ -269,11 +269,11 @@ const getDaysUntil = (value) => {
   const dayCount = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
   if (dayCount < 0) return null;
-  if (dayCount === 0) return "Today";
-  if (dayCount === 1) return "In 1 day";
-  if (dayCount < 7) return `In ${dayCount} days`;
-  if (dayCount < 14) return "In 1 week";
-  return `In ${Math.ceil(dayCount / 7)} weeks`;
+  if (dayCount === 0) return "Hôm nay";
+  if (dayCount === 1) return "Còn 1 ngày";
+  if (dayCount < 7) return `Còn ${dayCount} ngày`;
+  if (dayCount < 14) return "Còn 1 tuần";
+  return `Còn ${Math.ceil(dayCount / 7)} tuần`;
 };
 
 const PromotionManagementPage = () => {
@@ -313,7 +313,7 @@ const PromotionManagementPage = () => {
         setPromotionsPage(mockPromotionsPage);
         setError(
           fetchError.message ||
-            "Promotions could not be loaded from the API. Demo data is being shown.",
+            "Không thể tải danh sách khuyến mãi từ API. Hệ thống đang hiển thị dữ liệu mẫu.",
         );
         setUsingFallback(true);
       } finally {
@@ -403,7 +403,7 @@ const PromotionManagementPage = () => {
       });
       setSubmitError(
         fetchError.message ||
-          "Promotion detail could not be loaded from the API. Current row data is being used.",
+          "Không thể tải chi tiết khuyến mãi từ API. Hệ thống đang dùng dữ liệu của dòng hiện tại.",
       );
     } finally {
       setIsDetailLoading(false);
@@ -448,7 +448,7 @@ const PromotionManagementPage = () => {
     } catch (submitPromotionError) {
       setSubmitError(
         submitPromotionError.message ||
-          "Unable to save this promotion. Please try again.",
+          "Không thể lưu khuyến mãi này. Vui lòng thử lại.",
       );
     } finally {
       setIsSubmitting(false);
@@ -473,7 +473,7 @@ const PromotionManagementPage = () => {
         await loadPromotions(nextPage, keyword);
       }
     } catch (deleteError) {
-      setError(deleteError.message || "Unable to delete this promotion.");
+      setError(deleteError.message || "Không thể xóa khuyến mãi này.");
       setUsingFallback(false);
     } finally {
       setDeletingId(null);
@@ -498,15 +498,15 @@ const PromotionManagementPage = () => {
         <Card.Body className="p-0">
           <div className="promotion-header">
             <div>
-              <h1 className="promotion-page-title mb-2">Promotion Management</h1>
+              <h1 className="promotion-page-title mb-2">Quản lý khuyến mãi</h1>
               <p className="promotion-page-subtitle mb-0">
-                View and manage all active discount codes
+                Xem và quản lý toàn bộ mã khuyến mãi đang hoạt động
               </p>
             </div>
 
             <Button className="promotion-create-button" onClick={openCreateModal}>
               <span className="material-symbols-outlined">add_circle</span>
-              <span>New Promotion</span>
+              <span>Thêm khuyến mãi</span>
             </Button>
           </div>
 
@@ -517,19 +517,19 @@ const PromotionManagementPage = () => {
                 type="text"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Search by promo code"
+                placeholder="Tìm theo mã khuyến mãi"
               />
             </form>
 
             <div className="promotion-summary-pills">
               <span className="promotion-summary-pill">
-                {stats.active} active
+                {stats.active} đang hoạt động
               </span>
               <span className="promotion-summary-pill muted">
-                {stats.scheduled} scheduled
+                {stats.scheduled} sắp diễn ra
               </span>
               <span className="promotion-summary-pill muted">
-                {stats.expired} expired
+                {stats.expired} đã hết hạn
               </span>
             </div>
           </div>
@@ -538,13 +538,13 @@ const PromotionManagementPage = () => {
             <Table className="promotion-management-table align-middle mb-0">
               <thead>
                 <tr>
-                  <th>PROMO CODE</th>
-                  <th>TYPE</th>
-                  <th>VALUE</th>
-                  <th>USAGE LIMIT</th>
-                  <th>START DATE</th>
-                  <th>END DATE</th>
-                  <th>ACTIONS</th>
+                  <th>MÃ KHUYẾN MÃI</th>
+                  <th>LOẠI</th>
+                  <th>GIÁ TRỊ</th>
+                  <th>GIỚI HẠN SỬ DỤNG</th>
+                  <th>NGÀY BẮT ĐẦU</th>
+                  <th>NGÀY KẾT THÚC</th>
+                  <th>THAO TÁC</th>
                 </tr>
               </thead>
               <tbody>
@@ -592,8 +592,8 @@ const PromotionManagementPage = () => {
                               className={`promotion-usage-text ${promotionState === "expired" ? "expired" : ""}`}
                             >
                               {promotionState === "expired"
-                                ? "Closed"
-                                : `${formatNumber(promotion.usageLimit)} uses max`}
+                                ? "Đã kết thúc"
+                                : `${formatNumber(promotion.usageLimit)} lượt tối đa`}
                             </div>
                           </div>
                         </td>
@@ -629,7 +629,7 @@ const PromotionManagementPage = () => {
                 ) : (
                   <tr>
                     <td colSpan={7} className="text-center py-5 text-muted">
-                      No promotions found.
+                      Không tìm thấy khuyến mãi nào.
                     </td>
                   </tr>
                 )}
@@ -639,8 +639,8 @@ const PromotionManagementPage = () => {
 
           <div className="promotion-table-footer">
             <div className="promotion-records-text">
-              Showing {startItem} to {endItem} of{" "}
-              {formatNumber(promotionsPage.totalElements)} entries
+              Hiển thị {startItem} đến {endItem} trên tổng{" "}
+              {formatNumber(promotionsPage.totalElements)} mục
             </div>
 
             <Pagination className="mb-0 promotion-pagination">
@@ -682,13 +682,13 @@ const PromotionManagementPage = () => {
                 <span className="material-symbols-outlined star-sm">auto_awesome</span>
               </div>
 
-              <div className="promotion-automation-label">Smart Campaigns</div>
+              <div className="promotion-automation-label">Chiến dịch thông minh</div>
               <h2 className="promotion-automation-title mb-3">
-                Automate Your Growth
+                Tự động hóa tăng trưởng
               </h2>
               <p className="promotion-automation-copy mb-4">
-                Set up intelligent triggers for loyalty rewards and seasonal
-                discounts. Emerald Admin handles the logic, you handle the scale.
+                Thiết lập các kích hoạt thông minh cho thưởng khách hàng thân thiết
+                và ưu đãi theo mùa. Phần logic để hệ thống lo, bạn tập trung mở rộng.
               </p>
 
               <div className="promotion-automation-actions">
@@ -697,13 +697,13 @@ const PromotionManagementPage = () => {
                   className="promotion-automation-primary"
                   onClick={openCreateModal}
                 >
-                  Setup Rules
+                  Thiết lập quy tắc
                 </Button>
                 <Button
                   variant="outline-light"
                   className="promotion-automation-secondary"
                 >
-                  Documentation
+                  Tài liệu
                 </Button>
               </div>
             </Card.Body>
@@ -713,7 +713,7 @@ const PromotionManagementPage = () => {
         <Col xl={4}>
           <Card className="border-0 shadow-sm promotion-expiring-card h-100">
             <Card.Body>
-              <h2 className="promotion-expiring-title">Upcoming Expirations</h2>
+              <h2 className="promotion-expiring-title">Sắp hết hạn</h2>
 
               <div className="promotion-expiring-list">
                 {upcomingExpirations.length ? (
@@ -734,13 +734,13 @@ const PromotionManagementPage = () => {
                   ))
                 ) : (
                   <div className="promotion-expiring-empty">
-                    No promotions are expiring soon.
+                    Không có khuyến mãi nào sắp hết hạn.
                   </div>
                 )}
               </div>
 
               <button type="button" className="promotion-expiring-link">
-                View all schedule
+                Xem toàn bộ lịch
               </button>
             </Card.Body>
           </Card>
@@ -758,10 +758,10 @@ const PromotionManagementPage = () => {
           <Modal.Header closeButton className="border-0 pb-0">
             <div>
               <Modal.Title className="promotion-modal-title">
-                {editingPromotionId ? "Update Promotion" : "Create Promotion"}
+                {editingPromotionId ? "Cập nhật khuyến mãi" : "Tạo khuyến mãi"}
               </Modal.Title>
               <div className="promotion-modal-subtitle">
-                Fill in the required information to save this discount code.
+                Điền đầy đủ thông tin cần thiết để lưu mã khuyến mãi này.
               </div>
             </div>
           </Modal.Header>
@@ -774,7 +774,7 @@ const PromotionManagementPage = () => {
 
             {hasTriedSubmit && Object.keys(formErrors).length ? (
               <Alert variant="danger" className="mb-3">
-                Please complete the required fields highlighted in red.
+                Vui lòng điền các trường bắt buộc được tô đỏ.
               </Alert>
             ) : null}
 
@@ -786,7 +786,7 @@ const PromotionManagementPage = () => {
               <Row className="g-3">
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>Promo Code *</Form.Label>
+                    <Form.Label>Mã khuyến mãi *</Form.Label>
                     <Form.Control
                       name="code"
                       value={formValues.code}
@@ -802,21 +802,21 @@ const PromotionManagementPage = () => {
 
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>Discount Type *</Form.Label>
+                    <Form.Label>Loại giảm giá *</Form.Label>
                     <Form.Select
                       name="discountType"
                       value={formValues.discountType}
                       onChange={handleFormChange}
                     >
-                      <option value="PERCENT">Percentage</option>
-                      <option value="FIXED">Fixed</option>
+                      <option value="PERCENT">Phần trăm</option>
+                      <option value="FIXED">Cố định</option>
                     </Form.Select>
                   </Form.Group>
                 </Col>
 
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>Discount Value *</Form.Label>
+                    <Form.Label>Giá trị giảm *</Form.Label>
                     <Form.Control
                       name="discountValue"
                       type="number"
@@ -838,7 +838,7 @@ const PromotionManagementPage = () => {
 
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>Usage Limit</Form.Label>
+                    <Form.Label>Giới hạn sử dụng</Form.Label>
                     <Form.Control
                       name="usageLimit"
                       type="number"
@@ -857,7 +857,7 @@ const PromotionManagementPage = () => {
 
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>Start At</Form.Label>
+                    <Form.Label>Bắt đầu lúc</Form.Label>
                     <Form.Control
                       name="startAt"
                       type="datetime-local"
@@ -873,7 +873,7 @@ const PromotionManagementPage = () => {
 
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label>End At</Form.Label>
+                    <Form.Label>Kết thúc lúc</Form.Label>
                     <Form.Control
                       name="endAt"
                       type="datetime-local"
@@ -896,7 +896,7 @@ const PromotionManagementPage = () => {
               onClick={() => setIsFormOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -907,12 +907,12 @@ const PromotionManagementPage = () => {
               {isSubmitting ? (
                 <>
                   <Spinner size="sm" animation="border" className="me-2" />
-                  Saving...
+                  Đang lưu...
                 </>
               ) : editingPromotionId ? (
-                "Save Changes"
+                "Lưu thay đổi"
               ) : (
-                "Create Promotion"
+                "Tạo khuyến mãi"
               )}
             </Button>
           </Modal.Footer>
@@ -925,11 +925,10 @@ const PromotionManagementPage = () => {
         centered
       >
         <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title>Delete Promotion</Modal.Title>
+          <Modal.Title>Xóa khuyến mãi</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Delete promotion <strong>{deleteTarget?.code}</strong>? This action cannot
-          be undone.
+          Xóa khuyến mãi <strong>{deleteTarget?.code}</strong>? Hành động này không thể hoàn tác.
         </Modal.Body>
         <Modal.Footer className="border-0">
           <Button
@@ -937,7 +936,7 @@ const PromotionManagementPage = () => {
             onClick={() => setDeleteTarget(null)}
             disabled={Boolean(deletingId)}
           >
-            Cancel
+            Hủy
           </Button>
           <Button
             variant="danger"
@@ -947,10 +946,10 @@ const PromotionManagementPage = () => {
             {deletingId ? (
               <>
                 <Spinner size="sm" animation="border" className="me-2" />
-                Deleting...
+                Đang xóa...
               </>
             ) : (
-              "Delete"
+              "Xóa"
             )}
           </Button>
         </Modal.Footer>

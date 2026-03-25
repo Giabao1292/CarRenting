@@ -1,5 +1,6 @@
 package com.example.car_rental.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.example.car_rental.dto.response.AdminMonthlyRevenueResponse;
 import com.example.car_rental.dto.response.AdminOwnerRevenueResponse;
 import com.example.car_rental.dto.response.AdminPaymentResponse;
@@ -22,21 +23,19 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<Page<AdminPaymentResponse>> getAllPayments(
             @RequestParam(required = false) String providerTxnId,
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Integer bookingId,
             @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
-    ) {
+            @RequestParam(defaultValue = "desc") String sortDir) {
         Page<AdminPaymentResponse> response = paymentService.getAllPayments(
                 providerTxnId,
                 provider,
@@ -48,41 +47,38 @@ public class PaymentController {
                 page,
                 size,
                 sortBy,
-                sortDir
-        );
+                sortDir);
         return new ResponseData<>(200, "Get payments successfully", response);
     }
 
     @GetMapping("/admin/revenue/today")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<AdminRevenueResponse> getRevenueToday() {
         AdminRevenueResponse response = paymentService.getRevenueToday();
         return new ResponseData<>(200, "Get today's revenue successfully", response);
     }
 
     @GetMapping("/admin/revenue/date")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<AdminRevenueResponse> getRevenueByDate(
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         AdminRevenueResponse response = paymentService.getRevenueByDate(date);
         return new ResponseData<>(200, "Get revenue by date successfully", response);
     }
 
     @GetMapping("/admin/revenue/monthly")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<List<AdminMonthlyRevenueResponse>> getMonthlyRevenue(
-            @RequestParam Integer year
-    ) {
+            @RequestParam Integer year) {
         List<AdminMonthlyRevenueResponse> response = paymentService.getMonthlyRevenue(year);
         return new ResponseData<>(200, "Get monthly revenue successfully", response);
     }
 
     @GetMapping("/admin/revenue/owners")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<List<AdminOwnerRevenueResponse>> getOwnerRevenue(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
-    ) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
         List<AdminOwnerRevenueResponse> response = paymentService.getOwnerRevenue(fromDate, toDate);
         return new ResponseData<>(200, "Get owner revenue successfully", response);
     }

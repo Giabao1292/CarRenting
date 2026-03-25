@@ -1,5 +1,7 @@
 package com.example.car_rental.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.car_rental.dto.response.AdminCustomerResponse;
 import com.example.car_rental.dto.response.AdminUserDashboardResponse;
 import com.example.car_rental.dto.response.ResponseData;
@@ -23,6 +25,7 @@ public class UserController {
 
     // View all user and block/unlock
     @GetMapping("/admin/customers")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<Page<AdminCustomerResponse>> getAllCustomers(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
@@ -32,12 +35,14 @@ public class UserController {
     }
 
     @PutMapping("/admin/customers/{id}/block")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<String> blockCustomer(@PathVariable Integer id) {
         userService.blockCustomer(id);
         return new ResponseData<>(200, "Customer blocked successfully", "Customer blocked successfully");
     }
 
     @PutMapping("/admin/customers/{id}/unlock")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<String> unlockCustomer(@PathVariable Integer id) {
         userService.unlockCustomer(id);
         return new ResponseData<>(200, "Customer unlocked successfully", "Customer unlocked successfully");
@@ -45,12 +50,14 @@ public class UserController {
 
     // user report statistic
     @GetMapping("/admin/reports")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<UserReportResponse> getUserReport() {
         UserReportResponse response = userService.getUserReport();
         return new ResponseData<>(200, "Get user report successfully", response);
     }
 
     @GetMapping("/admin/dashboardUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseData<AdminUserDashboardResponse> getDashboard() {
         AdminUserDashboardResponse response = userService.getUserDashboard();
         return new ResponseData<>(200, "Get user dashboard successfully", response);
