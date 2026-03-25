@@ -12,6 +12,8 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Integer> {
 
+    Optional<Document> findTopByUserIdAndDocTypeOrderByCreatedAtDesc(Integer userId, String docType);
+
     @EntityGraph(attributePaths = {"user"})
     @Query("""
         SELECT d
