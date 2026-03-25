@@ -18,6 +18,11 @@ const menuGroups = [
         to: APP_ROUTES.ADMIN_USERS,
       },
       {
+        label: "Owner Management",
+        icon: "badge",
+        to: APP_ROUTES.ADMIN_OWNERS,
+      },
+      {
         label: "Booking Management",
         icon: "book_online",
         to: APP_ROUTES.ADMIN_BOOKINGS,
@@ -31,6 +36,11 @@ const menuGroups = [
         label: "Review",
         icon: "rate_review",
         to: APP_ROUTES.ADMIN_REVIEWS,
+      },
+      {
+        label: "Promotion",
+        icon: "local_offer",
+        to: APP_ROUTES.ADMIN_PROMOTIONS,
       },
     ],
   },

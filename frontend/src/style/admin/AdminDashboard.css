@@ -1,0 +1,189 @@
+.admin-overview-page {
+  --overview-ink: #263238;
+  --overview-muted: #667085;
+  --overview-border: #e7edf0;
+  --overview-panel: #ffffff;
+  --overview-shadow: 0 18px 44px rgba(17, 24, 39, 0.08);
+  --overview-green: #0e7a53;
+  --overview-green-soft: #dbf6ea;
+  --overview-blue: #0a6e8a;
+  --overview-blue-soft: #dff6ff;
+  --overview-gold: #9a6700;
+  --overview-gold-soft: #fff1c2;
+  --overview-rose: #b42318;
+  --overview-rose-soft: #ffe2dc;
+  color: var(--overview-ink);
+}
+
+.admin-overview-hero {
+  background:
+    radial-gradient(circle at top right, rgba(14, 122, 83, 0.16), transparent 34%),
+    linear-gradient(135deg, #fbfffd 0%, #f3fbf6 46%, #f8fbff 100%);
+  border: 1px solid #e6f0ea;
+  border-radius: 30px;
+  box-shadow: var(--overview-shadow);
+}
+
+.admin-overview-eyebrow {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--overview-green);
+}
+
+.admin-overview-subtitle {
+  max-width: 720px;
+  color: var(--overview-muted);
+  font-size: 1.02rem;
+}
+
+.admin-overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-overview-panel {
+  background: var(--overview-panel);
+  border: 1px solid var(--overview-border);
+  border-radius: 28px;
+  box-shadow: var(--overview-shadow);
+}
+
+.admin-overview-panel .card-body {
+  padding: 1.5rem;
+}
+
+.admin-overview-stat-value {
+  min-height: 3rem;
+}
+
+.admin-overview-stat-meta {
+  color: var(--overview-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.admin-overview-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #24323d;
+}
+
+.admin-overview-vehicles {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-overview-vehicle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--overview-border);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfc 100%);
+}
+
+.admin-overview-vehicle-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.admin-overview-rank {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #edf7f2;
+  color: var(--overview-green);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.admin-overview-vehicle-media {
+  width: 72px;
+  height: 56px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dff3ea 0%, #ecf7ff 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--overview-green);
+  flex-shrink: 0;
+}
+
+.admin-overview-vehicle-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-overview-vehicle-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #24323d;
+  margin-bottom: 0.25rem;
+}
+
+.admin-overview-vehicle-subtext {
+  color: var(--overview-muted);
+  font-size: 0.92rem;
+}
+
+.admin-overview-vehicle-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.admin-overview-booking-pill {
+  background: #edf7f2;
+  color: var(--overview-green);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-overview-revenue {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #24323d;
+  white-space: nowrap;
+}
+
+.admin-overview-empty {
+  padding: 1.2rem;
+  border: 1px dashed var(--overview-border);
+  border-radius: 20px;
+  background: #fafcfd;
+  color: var(--overview-muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+@media (max-width: 767.98px) {
+  .admin-overview-vehicle {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .admin-overview-vehicle-main,
+  .admin-overview-vehicle-metrics {
+    align-items: flex-start;
+  }
+
+  .admin-overview-vehicle-main {
+    flex-wrap: wrap;
+  }
+}
