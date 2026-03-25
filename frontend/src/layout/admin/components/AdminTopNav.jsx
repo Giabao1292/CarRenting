@@ -6,10 +6,19 @@ import {
   Nav,
   Navbar,
 } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes";
+import { useAuth } from "../../../context/AuthContext";
 
 const AdminTopNav = ({ avatar }) => {
+  const navigate = useNavigate();
+  const { logoutUser } = useAuth();
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate(APP_ROUTES.HOME, { replace: true });
+  };
+
   return (
     <Navbar className="bg-white border-bottom py-3" sticky="top">
       <Container fluid="xl" className="justify-content-between gap-3">
@@ -67,7 +76,10 @@ const AdminTopNav = ({ avatar }) => {
             height={40}
             className="rounded-circle border border-success object-fit-cover"
           />
-          <Button className="btn-primary-custom fw-bold d-none d-md-inline-block">
+          <Button
+            className="btn-primary-custom fw-bold d-none d-md-inline-block"
+            onClick={handleLogout}
+          >
             Logout
           </Button>
         </div>

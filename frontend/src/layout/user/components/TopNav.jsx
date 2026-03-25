@@ -5,6 +5,20 @@ import { APP_ROUTES } from "../../../app/routes";
 import AuthModal from "../../../components/auth/AuthModal";
 import { useAuth } from "../../../context/AuthContext";
 
+const resolveDashboardRouteByRole = (role) => {
+  const normalizedRole = String(role || "").toUpperCase();
+
+  if (normalizedRole.includes("ADMIN")) {
+    return APP_ROUTES.ADMIN_DASHBOARD;
+  }
+
+  if (normalizedRole.includes("OWNER")) {
+    return APP_ROUTES.OWNER_DASHBOARD;
+  }
+
+  return null;
+};
+
 const TopNav = () => {
   const { authUser, isLoggedIn, loginUser, logoutUser, defaultAvatar } =
     useAuth();
@@ -27,6 +41,11 @@ const TopNav = () => {
 
   const handleLoginSuccess = (loggedUser) => {
     loginUser(loggedUser);
+
+    const dashboardRoute = resolveDashboardRouteByRole(loggedUser?.role);
+    if (dashboardRoute) {
+      navigate(dashboardRoute, { replace: true });
+    }
   };
 
   const handleNavigateAccountSettings = () => {
