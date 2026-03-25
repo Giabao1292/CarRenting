@@ -29,6 +29,27 @@ const normalizeGoogleError = (error) => {
   return message || "Đăng nhập Google thất bại, vui lòng thử lại.";
 };
 
+const normalizeServerError = (error, fallbackMessage) => {
+  const serverMessage = error?.response?.data?.message;
+  if (serverMessage) {
+    return serverMessage;
+  }
+
+  return error?.message || fallbackMessage;
+};
+
+const mapAuthPayloadToUser = (payload, fallbackEmail = "") => ({
+  name:
+    payload?.name ||
+    payload?.fullName ||
+    payload?.displayName ||
+    fallbackEmail ||
+    "Người dùng",
+  role: payload?.role,
+  email: payload?.email || fallbackEmail,
+  avatar: payload?.avatar,
+});
+
 export const login = async ({ email, password }) => {
   const response = await apiClient.post("/auth/login", {
     email,
@@ -43,12 +64,50 @@ export const login = async ({ email, password }) => {
 
   saveToken(payload.accessToken, payload.refreshToken);
 
-  return {
-    name: payload.name || payload.fullName || payload.displayName || email,
-    role: payload.role,
-    email,
-    avatar: payload.avatar,
-  };
+  return mapAuthPayloadToUser(payload, email);
+};
+
+export const register = async ({ email, password, fullName, dateOfBirth }) => {
+  try {
+    const response = await apiClient.post("/auth/register", {
+      email,
+      password,
+      fullName,
+      dateOfBirth,
+    });
+
+    return {
+      code: response?.data?.code,
+      message:
+        response?.data?.message ||
+        "Đăng ký thành công. Vui lòng kiểm tra email để lấy mã xác thực.",
+    };
+  } catch (error) {
+    throw new Error(
+      normalizeServerError(error, "Đăng ký thất bại, vui lòng thử lại."),
+    );
+  }
+};
+
+export const verifyRegistration = async ({ email, token }) => {
+  try {
+    const response = await apiClient.post("/auth/verify", {
+      email,
+      token,
+    });
+
+    const payload = response?.data?.data;
+    if (!payload?.accessToken || !payload?.refreshToken) {
+      throw new Error("Token không hợp lệ từ server.");
+    }
+
+    saveToken(payload.accessToken, payload.refreshToken);
+    return mapAuthPayloadToUser(payload, email);
+  } catch (error) {
+    throw new Error(
+      normalizeServerError(error, "Xác thực thất bại, vui lòng thử lại."),
+    );
+  }
 };
 
 export const loginWithGoogle = async () => {
@@ -142,6 +201,8 @@ export const loginWithGoogle = async () => {
 
 const authService = {
   login,
+  register,
+  verifyRegistration,
   loginWithGoogle,
 };
 
