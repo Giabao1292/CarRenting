@@ -9,6 +9,8 @@ export const APP_ROUTES = {
   BOOKING_SUCCESS: "/booking-success",
   PROFILE: "/profile",
   OWNER_DASHBOARD: "/dashboard/owner",
+  OWNER_ADD_CAR: "/dashboard/owner/cars/new",
+  OWNER_CAR_MANAGE: "/dashboard/owner/cars/:id/manage",
   ADMIN_DASHBOARD: "/dashboard/admin",
   ADMIN_CARS: "/dashboard/admin/cars",
   ADMIN_USERS: "/dashboard/admin/users",

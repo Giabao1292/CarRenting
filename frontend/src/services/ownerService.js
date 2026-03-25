@@ -1,5 +1,14 @@
 import apiClient from "../api/axios";
 
+const getErrorMessage = (error, fallbackMessage) => {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallbackMessage
+  );
+};
+
 const normalizeOwnerType = (value) => {
   if (value === "business") {
     return "BUSINESS";
@@ -70,6 +79,27 @@ export const getMyCars = async () => {
   return Array.isArray(cars) ? cars : [];
 };
 
+export const createOwnerCar = async (payload) => {
+  try {
+    const response = await apiClient.post("/cars/me", payload);
+    return response?.data?.data || null;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Không thể thêm xe mới."));
+  }
+};
+
+export const getVehicleFeatures = async () => {
+  try {
+    const response = await apiClient.get("/cars/features");
+    const features = response?.data?.data;
+    return Array.isArray(features) ? features : [];
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Không thể tải danh sách tiện ích xe."),
+    );
+  }
+};
+
 export const getBookingRequests = async () => {
   const response = await apiClient.get("/bookings");
   const bookings = response?.data?.data;
@@ -122,15 +152,79 @@ export const updateOwnerTimeWithParams = async ({ open, close }) => {
   return response?.data;
 };
 
+export const getOwnerCarManageDetail = async (vehicleId) => {
+  try {
+    const response = await apiClient.get(`/cars/me/${vehicleId}/manage`);
+    return response?.data?.data || null;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Không thể tải chi tiết xe."));
+  }
+};
+
+export const updateOwnerCarManageDetail = async (vehicleId, payload) => {
+  try {
+    const response = await apiClient.put(
+      `/cars/me/${vehicleId}/manage`,
+      payload,
+    );
+    return response?.data?.data || null;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Không thể cập nhật thông tin xe."));
+  }
+};
+
+export const uploadOwnerCarImage = async (
+  vehicleId,
+  file,
+  isPrimary = false,
+) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("isPrimary", String(Boolean(isPrimary)));
+
+    const response = await apiClient.post(
+      `/cars/me/${vehicleId}/images`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response?.data?.data || null;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Không thể tải ảnh xe lên."));
+  }
+};
+
+export const deleteOwnerCarImage = async (vehicleId, imageId) => {
+  try {
+    const response = await apiClient.delete(
+      `/cars/me/${vehicleId}/images/${imageId}`,
+    );
+    return response?.data?.data || null;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Không thể xóa ảnh xe."));
+  }
+};
+
 const ownerService = {
   registerOwner,
   getOwnerStatus,
   getMyCars,
+  createOwnerCar,
+  getVehicleFeatures,
   getBookingRequests,
   getOwnerTime,
   updateCarStatus,
   updateOwnerTime,
   updateOwnerTimeWithParams,
+  getOwnerCarManageDetail,
+  updateOwnerCarManageDetail,
+  uploadOwnerCarImage,
+  deleteOwnerCarImage,
 };
 
 export default ownerService;
