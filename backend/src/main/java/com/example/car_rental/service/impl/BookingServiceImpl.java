@@ -85,8 +85,8 @@ public class BookingServiceImpl implements BookingService {
                         .vehicleId(toInteger(item[1]))
                         .vehicleName(toStringValue(item[2]))
                         .pricePerDay(toBigDecimal(item[3]))
-                        .quantity(toInteger(item[4]))
-                        .subtotal(toBigDecimal(item[5]))
+                        .quantity(1)
+                        .subtotal(toBigDecimal(item[4]))
                         .build())
                 .toList();
 

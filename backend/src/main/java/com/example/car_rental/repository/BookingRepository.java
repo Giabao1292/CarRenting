@@ -99,18 +99,17 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Optional<Object[]> findBookingDetailRaw(@Param("bookingId") Integer bookingId);
 
     @Query(value = """
-            SELECT
-                bi.id,
-                v.id,
-                CONCAT(v.brand, ' ', v.model),
-                bi.price_per_unit,
-                bi.quantity,
-                bi.subtotal
-            FROM booking_items bi
-            JOIN vehicles v ON bi.vehicle_id = v.id
-            WHERE bi.booking_id = :bookingId
-            ORDER BY bi.id ASC
-            """, nativeQuery = true)
+        SELECT
+            bi.id,
+            v.id,
+            CONCAT(v.brand, ' ', v.model),
+            v.price_per_day,
+            bi.subtotal
+        FROM booking_items bi
+        JOIN vehicles v ON bi.vehicle_id = v.id
+        WHERE bi.booking_id = :bookingId
+        ORDER BY bi.id ASC
+        """, nativeQuery = true)
     List<Object[]> findBookingItemsRaw(@Param("bookingId") Integer bookingId);
 
     @Modifying
