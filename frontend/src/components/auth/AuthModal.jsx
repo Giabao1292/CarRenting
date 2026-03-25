@@ -31,6 +31,7 @@ const AuthModal = ({
   const [registerErrors, setRegisterErrors] = useState({});
   const [loginServerError, setLoginServerError] = useState("");
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const isLoginMode = useMemo(() => mode === "login", [mode]);
 
@@ -119,6 +120,25 @@ const AuthModal = ({
     validateRegister();
   };
 
+  const handleGoogleLogin = async () => {
+    setLoginServerError("");
+
+    try {
+      setIsGoogleSubmitting(true);
+      const loggedUser = await authService.loginWithGoogle();
+      onLoginSuccess?.(loggedUser);
+      onHide();
+    } catch (error) {
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Đăng nhập Google thất bại, vui lòng thử lại.";
+      setLoginServerError(serverMessage);
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
   return (
     <Modal
       show={show}
@@ -198,12 +218,6 @@ const AuthModal = ({
               >
                 {isLoginSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
-
-              {loginServerError && (
-                <div className="text-danger small text-center mt-2">
-                  {loginServerError}
-                </div>
-              )}
             </Form>
 
             <div className="auth-switch-text">
@@ -384,11 +398,22 @@ const AuthModal = ({
             <span className="auth-social-facebook">f</span>
             Facebook
           </button>
-          <button type="button" className="auth-social-btn">
+          <button
+            type="button"
+            className="auth-social-btn"
+            onClick={handleGoogleLogin}
+            disabled={isGoogleSubmitting || isLoginSubmitting}
+          >
             <span className="auth-social-google">G</span>
-            Google
+            {isGoogleSubmitting ? "Đang đăng nhập..." : "Google"}
           </button>
         </div>
+
+        {loginServerError && (
+          <div className="text-danger small text-center mt-2">
+            {loginServerError}
+          </div>
+        )}
       </Modal.Body>
     </Modal>
   );

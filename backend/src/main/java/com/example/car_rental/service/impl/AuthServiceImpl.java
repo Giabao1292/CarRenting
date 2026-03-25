@@ -1,6 +1,5 @@
 package com.example.car_rental.service.impl;
 
-
 import com.example.car_rental.dto.request.LoginRequest;
 import com.example.car_rental.dto.response.TokenResponse;
 import com.example.car_rental.exception.ResourceNotFoundException;
@@ -22,13 +21,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Service
@@ -40,7 +39,7 @@ public class AuthServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-//    private final VerificationTokenRepository verificationTokenRepository;
+    // private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
     private final UserValidator userValidator;
 
@@ -49,7 +48,8 @@ public class AuthServiceImpl implements AuthenticationService {
     public TokenResponse authenticate(LoginRequest request) {
         log.info("Starting Authenticate");
         User user = userService.findByEmail(request.getEmail());
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         log.info("Ending Authenticate");
@@ -61,72 +61,136 @@ public class AuthServiceImpl implements AuthenticationService {
                 .build();
     }
 
-//    @Override
-//    public UserTemp register(RegisterRequest registerRequest) {
-//        userValidator.validateEmail(registerRequest.getEmail());
-//        UserTemp user = userTempService.saveUser(registerRequest);
-//        return user;
-//    }
-//
-//    @Override
-//    public TokenResponse refreshToken(String refreshToken) {
-//        String username = jwtService.extractUsername(refreshToken, REFRESH_TOKEN);
-//        User user = userRepository.findUserByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-//        String accessToken = jwtService.generateToken(user);
-//        return TokenResponse.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .roles(user.getTblUserRoles().stream().map(role -> role.getRole().getRoleName()).collect(Collectors.toList()))
-//                .build();
-//    }
-//
-//    @Override
-//    public TokenResponse verifyTokenRegister(String verifyToken) {
-//        UserTemp user = userTempRepository.findByVerificationTokenAndTokenExpiryAfter(verifyToken, Instant.now()).orElseThrow(() -> new ResourceNotFoundException("Token đã hết hạn"));
-//        TokenResponse tokenResponse = userService.saveUser(user);
-//        userTempRepository.delete(user);
-//        return tokenResponse;
-//    }
-//
-//    @Override
-//    public void handleForgotPassword(String email) {
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy email"));
-//
-//        String token = UUID.randomUUID().toString();
-//
-//        VerificationToken verificationToken = new VerificationToken();
-//        verificationToken.setEmail(user.getEmail());
-//        verificationToken.setToken(token);
-//        verificationToken.setExpiryDate(Instant.now().plusSeconds(15 * 60)); // hết hạn sau 15 phút
-//        verificationTokenRepository.save(verificationToken);
-//
-//        try {
-//            mailService.sendResetPasswordEmail(user.getEmail(), token);  // gọi gửi mail reset password
-//        } catch (MessagingException e) {
-//            throw new RuntimeException("Không thể gửi email đặt lại mật khẩu", e);
-//        }
-//    }
-//
-//    @Override
-//    public void resetPassword(String token, String newPassword) {
-//        VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
-//                .orElseThrow(() -> new ResourceNotFoundException("Token không hợp lệ"));
-//
-//        if (verificationToken.getExpiryDate().isBefore(Instant.now())) { // ✅ Dùng Instant
-//            throw new RuntimeException("Token đã hết hạn");
-//        }
-//
-//        User user = userRepository.findByEmail(verificationToken.getEmail())
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng tương ứng với token"));
-//
-//        user.setPassword(passwordEncoder.encode(newPassword));
-//        userRepository.save(user);
-//        verificationTokenRepository.delete(verificationToken);
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return SecurityContextHolder.getContext().getAuthentication().getName();
-//    }
+    @Transactional
+    @Override
+    public TokenResponse authenticateGoogleUser(OAuth2User oauth2User) {
+        String email = oauth2User.getAttribute("email");
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Google account does not contain email");
+        }
+
+        String googleName = oauth2User.getAttribute("name");
+        String fullName = (googleName == null || googleName.isBlank()) ? email : googleName;
+        String avatar = oauth2User.getAttribute("picture");
+        Instant now = Instant.now();
+
+        User user = userRepository.findUserByEmail(email)
+                .map(existingUser -> {
+                    if (existingUser.getFullName() == null || existingUser.getFullName().isBlank()) {
+                        existingUser.setFullName(fullName);
+                    }
+                    if ((existingUser.getAvatar() == null || existingUser.getAvatar().isBlank())
+                            && avatar != null && !avatar.isBlank()) {
+                        existingUser.setAvatar(avatar);
+                    }
+                    if (!Boolean.TRUE.equals(existingUser.getVerified())) {
+                        existingUser.setVerified(true);
+                    }
+                    existingUser.setUpdatedAt(now);
+                    return userRepository.save(existingUser);
+                })
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                    newUser.setFullName(fullName);
+                    newUser.setAvatar(avatar);
+                    newUser.setRole("USER");
+                    newUser.setVerified(true);
+                    newUser.setIsDeleted(false);
+                    newUser.setCreatedAt(now);
+                    newUser.setUpdatedAt(now);
+                    return userRepository.save(newUser);
+                });
+
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            throw new IllegalStateException("User account has been blocked");
+        }
+
+        return TokenResponse.builder()
+                .accessToken(jwtService.generateToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
+                .avatar(user.getAvatar())
+                .role(user.getRole())
+                .build();
+    }
+
+    // @Override
+    // public UserTemp register(RegisterRequest registerRequest) {
+    // userValidator.validateEmail(registerRequest.getEmail());
+    // UserTemp user = userTempService.saveUser(registerRequest);
+    // return user;
+    // }
+    //
+    // @Override
+    // public TokenResponse refreshToken(String refreshToken) {
+    // String username = jwtService.extractUsername(refreshToken, REFRESH_TOKEN);
+    // User user = userRepository.findUserByEmail(username).orElseThrow(() -> new
+    // ResourceNotFoundException("User not found"));
+    // String accessToken = jwtService.generateToken(user);
+    // return TokenResponse.builder()
+    // .accessToken(accessToken)
+    // .refreshToken(refreshToken)
+    // .roles(user.getTblUserRoles().stream().map(role ->
+    // role.getRole().getRoleName()).collect(Collectors.toList()))
+    // .build();
+    // }
+    //
+    // @Override
+    // public TokenResponse verifyTokenRegister(String verifyToken) {
+    // UserTemp user =
+    // userTempRepository.findByVerificationTokenAndTokenExpiryAfter(verifyToken,
+    // Instant.now()).orElseThrow(() -> new ResourceNotFoundException("Token đã hết
+    // hạn"));
+    // TokenResponse tokenResponse = userService.saveUser(user);
+    // userTempRepository.delete(user);
+    // return tokenResponse;
+    // }
+    //
+    // @Override
+    // public void handleForgotPassword(String email) {
+    // User user = userRepository.findByEmail(email)
+    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy email"));
+    //
+    // String token = UUID.randomUUID().toString();
+    //
+    // VerificationToken verificationToken = new VerificationToken();
+    // verificationToken.setEmail(user.getEmail());
+    // verificationToken.setToken(token);
+    // verificationToken.setExpiryDate(Instant.now().plusSeconds(15 * 60)); // hết
+    // hạn sau 15 phút
+    // verificationTokenRepository.save(verificationToken);
+    //
+    // try {
+    // mailService.sendResetPasswordEmail(user.getEmail(), token); // gọi gửi mail
+    // reset password
+    // } catch (MessagingException e) {
+    // throw new RuntimeException("Không thể gửi email đặt lại mật khẩu", e);
+    // }
+    // }
+    //
+    // @Override
+    // public void resetPassword(String token, String newPassword) {
+    // VerificationToken verificationToken =
+    // verificationTokenRepository.findByToken(token)
+    // .orElseThrow(() -> new ResourceNotFoundException("Token không hợp lệ"));
+    //
+    // if (verificationToken.getExpiryDate().isBefore(Instant.now())) { // ✅ Dùng
+    // Instant
+    // throw new RuntimeException("Token đã hết hạn");
+    // }
+    //
+    // User user = userRepository.findByEmail(verificationToken.getEmail())
+    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng
+    // tương ứng với token"));
+    //
+    // user.setPassword(passwordEncoder.encode(newPassword));
+    // userRepository.save(user);
+    // verificationTokenRepository.delete(verificationToken);
+    // }
+    //
+    // @Override
+    // public String getUsername() {
+    // return SecurityContextHolder.getContext().getAuthentication().getName();
+    // }
 }

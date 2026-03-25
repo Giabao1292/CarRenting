@@ -6,8 +6,10 @@ import {
   removeToken,
 } from "../utils/storage";
 
-const API_BASE_URL =
+const rawApiBaseUrl =
   import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+export const API_BASE_URL = rawApiBaseUrl.replace(/\/+$/, "");
+export const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, "");
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
