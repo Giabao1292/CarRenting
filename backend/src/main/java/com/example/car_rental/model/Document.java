@@ -56,10 +56,13 @@ public class Document {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "status")
+    @Size(max = 20)
+    @Column(name = "status", length = 20)
     private String status;
 
-    @Column(name = "reason")
+    @Size(max = 500)
+    @Nationalized
+    @Column(name = "reason", length = 500)
     private String reason;
 
 }
