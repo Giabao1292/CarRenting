@@ -42,4 +42,6 @@ public interface BookingService {
     List<TopBookedVehicleResponse> getTopBookedVehicles(int limit);
 
     List<OwnerBookingRequestResponse> getBookingRequest(String userEmail);
+
+    List<MyTripResponse> getMyTrips(String userEmail);
 }

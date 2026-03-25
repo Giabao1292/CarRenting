@@ -1,68 +1,256 @@
-import { Button, Col, Row } from "react-bootstrap";
-import ActivityLogCard from "../../components/admin/dashboard/ActivityLogCard";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Badge, Button, Card, Col, Row, Spinner } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import AdminStatCard from "../../components/admin/dashboard/AdminStatCard";
-import ApprovalCard from "../../components/admin/dashboard/ApprovalCard";
-import QuickActionsCard from "../../components/admin/dashboard/QuickActionsCard";
-import { adminDashboardData } from "../../data/adminDashboardData";
+import { APP_ROUTES } from "../../app/routes";
+import { getAdminDashboard } from "../../services/admin/adminDashboardService";
+import "../../style/admin/AdminDashboard.css";
+
+const emptyDashboard = {
+  totalUsers: 0,
+  totalOwners: 0,
+  totalAvailableCars: 0,
+  revenueThisMonth: 0,
+  topBookedVehicles: [],
+};
+
+const formatNumber = (value) =>
+  new Intl.NumberFormat("en-US").format(Number(value) || 0);
+
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(Number(value) || 0);
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+
+const pluralizeBookings = (value) => {
+  const count = Number(value) || 0;
+  return `${formatNumber(count)} booking${count === 1 ? "" : "s"}`;
+};
+
+const normalizeImageUrl = (value) => {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:") ||
+    value.startsWith("blob:")
+  ) {
+    return value;
+  }
+
+  return `${API_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
+};
 
 const AdminDashboardPage = () => {
+  const [dashboard, setDashboard] = useState(emptyDashboard);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
+        const data = await getAdminDashboard();
+        setDashboard({
+          ...emptyDashboard,
+          ...data,
+          topBookedVehicles: Array.isArray(data?.topBookedVehicles)
+            ? data.topBookedVehicles
+            : [],
+        });
+      } catch (fetchError) {
+        setDashboard(emptyDashboard);
+        setError(fetchError.message || "Unable to load admin dashboard");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  const stats = useMemo(
+    () => [
+      {
+        label: "Total Users",
+        value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalUsers),
+        meta: "Registered customers on the platform",
+        trend: "Users",
+        icon: "groups",
+      },
+      {
+        label: "Total Owners",
+        value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalOwners),
+        meta: "Partners currently listing or managing vehicles",
+        trend: "Owners",
+        icon: "badge",
+      },
+      {
+        label: "Available Cars",
+        value: isLoading ? <Spinner animation="border" size="sm" /> : formatNumber(dashboard.totalAvailableCars),
+        meta: "Vehicles ready for booking right now",
+        trend: "Inventory",
+        icon: "directions_car",
+      },
+      {
+        label: "Revenue This Month",
+        value: isLoading ? <Spinner animation="border" size="sm" /> : formatCurrency(dashboard.revenueThisMonth),
+        meta: "Recognized revenue in the current month",
+        trend: "Revenue",
+        icon: "payments",
+        highlight: true,
+      },
+    ],
+    [dashboard, isLoading],
+  );
+
+  const topVehicles = useMemo(
+    () =>
+      (dashboard.topBookedVehicles || []).map((vehicle, index) => ({
+        key: vehicle?.vehicleId ?? `${vehicle?.vehicleName || "vehicle"}-${index}`,
+        rank: index + 1,
+        id: vehicle?.vehicleId ?? null,
+        name: vehicle?.vehicleName || "Unnamed vehicle",
+        licensePlate: vehicle?.licensePlate || "--",
+        ownerName: vehicle?.ownerName || "--",
+        image: normalizeImageUrl(vehicle?.imageUrl),
+        bookings: vehicle?.totalBookings ?? 0,
+        revenue: vehicle?.totalRevenue ?? 0,
+      })),
+    [dashboard.topBookedVehicles],
+  );
+
   return (
-    <>
-      <div className="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
-        <div>
-          <h2 className="fw-bold mb-1">Platform Overview</h2>
-          <p className="text-muted mb-0">
-            Welcome back, Admin. Here's what's happening today.
-          </p>
-        </div>
-        <div className="d-flex gap-2">
-          <Button variant="outline-secondary" className="fw-semibold">
-            <span className="material-symbols-outlined align-middle me-1">
-              calendar_today
-            </span>
-            Last 30 Days
-          </Button>
-          <Button className="btn-primary-custom fw-bold">
-            <span className="material-symbols-outlined align-middle me-1">
-              add
-            </span>
-            New Report
-          </Button>
-        </div>
-      </div>
+    <div className="admin-overview-page">
+      <Card className="admin-overview-hero border-0 mb-4">
+        <Card.Body className="p-4 p-lg-5">
+          <div className="d-flex flex-column flex-xl-row align-items-xl-end justify-content-between gap-4">
+            <div>
+              <div className="admin-overview-eyebrow mb-2">Admin overview</div>
+              <h1 className="fw-bold display-5 mb-2">Platform Overview</h1>
+              <p className="admin-overview-subtitle mb-0">
+                Theo doi suc khoe he thong qua nguoi dung, doi tac, xe san sang va doanh thu thang hien tai.
+              </p>
+            </div>
+            <div className="admin-overview-actions">
+              <Button
+                as={Link}
+                to={APP_ROUTES.ADMIN_CARS}
+                variant="outline-success"
+                className="fw-semibold rounded-pill px-4"
+              >
+                <span className="material-symbols-outlined align-middle me-2">
+                  directions_car
+                </span>
+                Manage Cars
+              </Button>
+              <Button
+                as={Link}
+                to={APP_ROUTES.ADMIN_BOOKINGS}
+                className="btn-primary-custom fw-bold rounded-pill px-4"
+              >
+                <span className="material-symbols-outlined align-middle me-2">
+                  book_online
+                </span>
+                View Bookings
+              </Button>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {error ? (
+        <Alert variant="danger" className="rounded-4 mb-4">
+          {error}
+        </Alert>
+      ) : null}
 
       <Row className="g-3 mb-4">
-        {adminDashboardData.stats.map((stat) => (
+        {stats.map((stat) => (
           <Col key={stat.label} sm={6} xl={3}>
             <AdminStatCard stat={stat} />
           </Col>
         ))}
       </Row>
 
-      <Row className="g-4">
-        <Col xl={8}>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-bold mb-0">Pending Car Approvals</h5>
-            <a href="#" className="text-success fw-bold small">
-              View All
-            </a>
+      <Card className="admin-overview-panel border-0">
+        <Card.Body>
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+              <div className="admin-overview-section-title">
+                Top Booked Vehicles
+              </div>
+              <div className="text-muted small mt-1">
+                Hien thi dung theo DTO backend: vehicle, chu xe, bien so, so luot dat va doanh thu.
+              </div>
+            </div>
+            <Badge bg="light" text="dark" pill className="px-3 py-2">
+              {formatNumber(topVehicles.length)} vehicles
+            </Badge>
           </div>
 
-          <div className="d-grid gap-3">
-            {adminDashboardData.approvals.map((item) => (
-              <ApprovalCard key={item.id} item={item} />
-            ))}
-          </div>
-        </Col>
-
-        <Col xl={4}>
-          <div className="d-grid gap-3">
-            <QuickActionsCard actions={adminDashboardData.quickActions} />
-            <ActivityLogCard logs={adminDashboardData.activityLog} />
-          </div>
-        </Col>
-      </Row>
-    </>
+          {isLoading ? (
+            <div className="admin-overview-empty">
+              <Spinner animation="border" size="sm" className="me-2" />
+              Loading dashboard data...
+            </div>
+          ) : topVehicles.length ? (
+            <div className="admin-overview-vehicles">
+              {topVehicles.map((vehicle) => (
+                <div className="admin-overview-vehicle" key={vehicle.key}>
+                  <div className="admin-overview-vehicle-main">
+                    <div className="admin-overview-rank">#{vehicle.rank}</div>
+                    <div className="admin-overview-vehicle-media">
+                      {vehicle.image ? (
+                        <img src={vehicle.image} alt={vehicle.name} />
+                      ) : (
+                        <span className="material-symbols-outlined">
+                          directions_car
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="admin-overview-vehicle-name">
+                        {vehicle.name}
+                      </div>
+                      <div className="admin-overview-vehicle-subtext">
+                        Plate: {vehicle.licensePlate}
+                      </div>
+                      <div className="admin-overview-vehicle-subtext">
+                        Owner: {vehicle.ownerName}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="admin-overview-vehicle-metrics">
+                    <div className="admin-overview-booking-pill">
+                      {pluralizeBookings(vehicle.bookings)}
+                    </div>
+                    <div className="admin-overview-revenue">
+                      {formatCurrency(vehicle.revenue)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="admin-overview-empty">
+              Chua co du lieu top booked vehicles.
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+    </div>
   );
 };
 

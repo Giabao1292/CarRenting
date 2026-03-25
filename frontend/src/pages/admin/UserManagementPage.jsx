@@ -5,6 +5,7 @@ import {
   Card,
   Form,
   InputGroup,
+  Modal,
   Pagination,
   Row,
   Col,
@@ -57,6 +58,7 @@ const UserManagementPage = () => {
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [error, setError] = useState("");
 
   const dashboardCards = useMemo(() => {
@@ -169,17 +171,29 @@ const UserManagementPage = () => {
     setKeyword(searchInput.trim());
   };
 
-  const handleToggleBlock = async (customer) => {
+  const handleOpenStatusModal = (customer) => {
+    setSelectedCustomer(customer);
+  };
+
+  const handleCloseStatusModal = () => {
+    if (actionLoadingId !== null) return;
+    setSelectedCustomer(null);
+  };
+
+  const handleToggleBlock = async () => {
+    if (!selectedCustomer) return;
+
     try {
-      setActionLoadingId(customer.id);
+      setActionLoadingId(selectedCustomer.id);
       setError("");
 
       await toggleCustomerBlockStatus({
-        id: customer.id,
-        isDeleted: customer.isDeleted,
+        id: selectedCustomer.id,
+        isDeleted: selectedCustomer.isDeleted,
       });
 
       await refreshData();
+      setSelectedCustomer(null);
     } catch (actionError) {
       setError(actionError.message || "Unable to update customer status");
     } finally {
@@ -190,6 +204,8 @@ const UserManagementPage = () => {
   const startItem = totalElements === 0 ? 0 : page * PAGE_SIZE + 1;
   const endItem = Math.min((page + 1) * PAGE_SIZE, totalElements);
   const visiblePages = buildPagination(page, totalPages);
+  const isSelectedCustomerBlocked = Boolean(selectedCustomer?.isDeleted);
+  const statusActionLabel = isSelectedCustomerBlocked ? "unblock" : "block";
 
   return (
     <>
@@ -340,13 +356,13 @@ const UserManagementPage = () => {
                       <td className="text-end">
                         <Button
                           variant={isBlocked ? "success" : "danger"}
-                          className={`rounded-pill px-3 fw-semibold user-action-button ${
+                          className={`px-3 fw-semibold user-action-button ${
                             isBlocked
                               ? "user-action-unlock"
                               : "user-action-block"
                           }`}
                           disabled={actionLoadingId === customer.id}
-                          onClick={() => handleToggleBlock(customer)}
+                          onClick={() => handleOpenStatusModal(customer)}
                         >
                           {actionLoadingId === customer.id ? (
                             <Spinner animation="border" size="sm" />
@@ -421,6 +437,53 @@ const UserManagementPage = () => {
           </div>
         </Card.Body>
       </Card>
+
+      <Modal
+        show={Boolean(selectedCustomer)}
+        onHide={handleCloseStatusModal}
+        centered
+      >
+        <Modal.Header closeButton={actionLoadingId === null}>
+          <Modal.Title className="text-capitalize">
+            Confirm {statusActionLabel} user
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedCustomer && (
+            <p className="mb-0">
+              Are you sure you want to {statusActionLabel}{" "}
+              <strong>
+                {selectedCustomer.fullName ||
+                  selectedCustomer.email ||
+                  `user #${selectedCustomer.id}`}
+              </strong>
+              ?
+            </p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={handleCloseStatusModal}
+            disabled={actionLoadingId !== null}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={isSelectedCustomerBlocked ? "success" : "danger"}
+            onClick={handleToggleBlock}
+            disabled={actionLoadingId !== null}
+          >
+            {actionLoadingId !== null ? (
+              <Spinner animation="border" size="sm" />
+            ) : isSelectedCustomerBlocked ? (
+              "Unblock"
+            ) : (
+              "Block"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };

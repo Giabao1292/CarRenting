@@ -1,7 +1,18 @@
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 
-const ProfileTripCard = ({ trip }) => {
-  const isConfirmed = trip.status.toLowerCase() === "confirmed";
+const ProfileTripCard = ({ trip, onOpenReview }) => {
+  const statusKey = String(trip.statusKey || "upcoming").toLowerCase();
+  const isUpcoming = statusKey === "upcoming";
+  const isCompleted = statusKey === "completed";
+  const badgeVariant = isCompleted
+    ? "success"
+    : isUpcoming
+      ? "primary"
+      : "warning";
+  const normalizedOwnerPhone = String(trip.ownerPhone || "")
+    .replace(/\s+/g, "")
+    .trim();
+  const canCallOwner = normalizedOwnerPhone.length > 0;
 
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden card-hover">
@@ -22,8 +33,8 @@ const ProfileTripCard = ({ trip }) => {
           <Card.Body className="p-4">
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
               <Badge
-                bg={isConfirmed ? "success" : "warning"}
-                text={isConfirmed ? undefined : "dark"}
+                bg={badgeVariant}
+                text={badgeVariant === "warning" ? "dark" : undefined}
                 className="px-3 py-2"
               >
                 {trip.status}
@@ -69,12 +80,24 @@ const ProfileTripCard = ({ trip }) => {
             </div>
 
             <div className="d-flex flex-wrap gap-2">
-              <Button className="btn-primary-custom fw-bold px-4">
-                View Trip
+              <Button
+                as="a"
+                href={canCallOwner ? `tel:${normalizedOwnerPhone}` : undefined}
+                variant="outline-secondary"
+                className="fw-semibold"
+                disabled={!canCallOwner}
+              >
+                Liên hệ chủ xe
               </Button>
-              <Button variant="outline-secondary" className="fw-semibold">
-                Contact Host
-              </Button>
+              {isCompleted ? (
+                <Button
+                  type="button"
+                  onClick={() => onOpenReview?.(trip)}
+                  className="btn-primary-custom fw-bold px-4"
+                >
+                  Đánh giá chi tiết chuyến đi
+                </Button>
+              ) : null}
             </div>
           </Card.Body>
         </Col>

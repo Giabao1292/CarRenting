@@ -159,6 +159,7 @@ public class UserServiceImpl implements UserService {
                 .refreshToken(jwtService.generateRefreshToken(user))
                 .avatar(user.getAvatar())
                 .role(user.getRole())
+                .email(user.getEmail())
                 .build();
     }
 }

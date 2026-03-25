@@ -1,15 +1,13 @@
 import { Badge, Card, ListGroup } from "react-bootstrap";
 
 const navItems = [
-  { label: "Tài khoản của tôi", icon: "person", active: true },
-  { label: "Xe yêu thích", icon: "favorite" },
-  { label: "Chuyến của tôi", icon: "directions_car" },
-  { label: "Địa chỉ của tôi", icon: "location_on" },
-  { label: "Đổi mật khẩu", icon: "lock" },
-  { label: "Đăng xuất", icon: "logout", isLogout: true },
+  { key: "account", label: "Tài khoản của tôi", icon: "person" },
+  { key: "trips", label: "Chuyến của tôi", icon: "directions_car" },
+  { key: "password", label: "Đổi mật khẩu", icon: "lock" },
+  { key: "logout", label: "Đăng xuất", icon: "logout", isLogout: true },
 ];
 
-const ProfileSidebar = ({ user }) => {
+const ProfileSidebar = ({ user, activeKey = "account", onSelect }) => {
   return (
     <Card className="border-0 shadow-sm rounded-4 overflow-hidden dashboard-sidebar-card">
       <Card.Body className="p-4">
@@ -30,10 +28,11 @@ const ProfileSidebar = ({ user }) => {
         <ListGroup variant="flush" className="dashboard-nav-list">
           {navItems.map((item) => (
             <ListGroup.Item
-              key={item.label}
+              key={item.key}
               action
+              onClick={() => onSelect?.(item.key)}
               className={`border-0 rounded-3 px-3 py-2 mb-1 d-flex align-items-center gap-2 ${
-                item.active ? "dashboard-nav-active" : "text-muted"
+                item.key === activeKey ? "dashboard-nav-active" : "text-muted"
               } ${
                 item.isLogout
                   ? "profile-nav-logout text-danger mt-2 rounded-0"

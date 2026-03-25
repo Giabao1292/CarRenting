@@ -6,10 +6,12 @@ const getErrorMessage = (error, fallbackMessage) =>
   error?.message ||
   fallbackMessage;
 
+const unwrapResponse = (response) => response?.data?.data ?? response?.data;
+
 export const getUserDashboard = async () => {
   try {
     const response = await apiClient.get("/users/admin/dashboardUser");
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
     throw new Error(getErrorMessage(error, "Unable to load dashboard"));
   }
@@ -25,7 +27,7 @@ export const getCustomers = async ({ keyword = "", page = 0, size = 10 } = {}) =
       },
     });
 
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
     throw new Error(getErrorMessage(error, "Unable to load customers"));
   }
@@ -36,7 +38,7 @@ export const toggleCustomerBlockStatus = async ({ id, isDeleted }) => {
 
   try {
     const response = await apiClient.put(`/users/admin/customers/${id}/${action}`);
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
     throw new Error(getErrorMessage(error, `Unable to ${action} customer`));
   }

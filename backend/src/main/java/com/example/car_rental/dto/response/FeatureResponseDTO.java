@@ -6,6 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class FeatureResponseDTO {
+    private Integer id;
     private String name;
     private String icon;
 }

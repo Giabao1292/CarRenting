@@ -38,17 +38,23 @@ const normalizeServerError = (error, fallbackMessage) => {
   return error?.message || fallbackMessage;
 };
 
-const mapAuthPayloadToUser = (payload, fallbackEmail = "") => ({
-  name:
-    payload?.name ||
+const mapAuthPayloadToUser = (payload, fallbackEmail = "") => {
+  const resolvedEmail = payload?.email || fallbackEmail || "";
+  const resolvedFullName =
     payload?.fullName ||
+    payload?.name ||
     payload?.displayName ||
-    fallbackEmail ||
-    "Người dùng",
-  role: payload?.role,
-  email: payload?.email || fallbackEmail,
-  avatar: payload?.avatar,
-});
+    resolvedEmail ||
+    "Người dùng";
+
+  return {
+    fullName: resolvedFullName,
+    name: resolvedFullName,
+    role: payload?.role,
+    email: resolvedEmail,
+    avatar: payload?.avatar,
+  };
+};
 
 export const login = async ({ email, password }) => {
   const response = await apiClient.post("/auth/login", {
@@ -146,17 +152,7 @@ export const loginWithGoogle = async () => {
       saveToken(payload.accessToken, payload.refreshToken);
 
       cleanup();
-      resolve({
-        name:
-          payload.name ||
-          payload.fullName ||
-          payload.displayName ||
-          payload.email ||
-          "Người dùng",
-        role: payload.role,
-        email: payload.email || "",
-        avatar: payload.avatar,
-      });
+      resolve(mapAuthPayloadToUser(payload));
     };
 
     const handleMessage = (event) => {
@@ -199,11 +195,30 @@ export const loginWithGoogle = async () => {
   });
 };
 
+export const changePassword = async ({
+  currentPassword,
+  newPassword,
+  confirmPassword,
+}) => {
+  try {
+    await apiClient.post("/auth/change-password", {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+  } catch (error) {
+    throw new Error(
+      normalizeServerError(error, "Không thể đổi mật khẩu. Vui lòng thử lại."),
+    );
+  }
+};
+
 const authService = {
   login,
   register,
   verifyRegistration,
   loginWithGoogle,
+  changePassword,
 };
 
 export default authService;

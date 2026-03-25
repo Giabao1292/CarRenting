@@ -12,23 +12,31 @@ import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
+    boolean existsByBookingIdAndUserIdAndVehicleId(Integer bookingId, Integer userId, Integer vehicleId);
+
     @Query("""
-        SELECT r
-        FROM Review r
-        WHERE (:rating IS NULL OR r.rating = :rating)
-          AND (:vehicleId IS NULL OR r.vehicle.id = :vehicleId)
-    """)
+                SELECT AVG(r.rating)
+                FROM Review r
+                WHERE r.vehicle.id = :vehicleId
+            """)
+    Double getAverageRatingByVehicleId(@Param("vehicleId") Integer vehicleId);
+
+    @Query("""
+                SELECT r
+                FROM Review r
+                WHERE (:rating IS NULL OR r.rating = :rating)
+                  AND (:vehicleId IS NULL OR r.vehicle.id = :vehicleId)
+            """)
     Page<Review> searchReviews(
             @Param("rating") Short rating,
             @Param("vehicleId") Integer vehicleId,
-            Pageable pageable
-    );
+            Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "vehicle", "booking"})
+    @EntityGraph(attributePaths = { "user", "vehicle", "booking" })
     @Query("""
-        SELECT r
-        FROM Review r
-        WHERE r.id = :id
-    """)
+                SELECT r
+                FROM Review r
+                WHERE r.id = :id
+            """)
     Optional<Review> findDetailById(@Param("id") Integer id);
 }

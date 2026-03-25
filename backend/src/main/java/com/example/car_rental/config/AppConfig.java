@@ -1,6 +1,5 @@
 package com.example.car_rental.config;
 
-
 import com.example.car_rental.filter.PreFilter;
 import com.example.car_rental.service.UserDetailService;
 import com.fasterxml.jackson.core.JsonParser;
@@ -42,16 +41,18 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @EnableWebSecurity
 @EnableMethodSecurity
-public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
+public class AppConfig implements WebMvcConfigurer, WebSecurityCustomizer {
 
-    private String[] WHITE_LIST = {"/api/auth/**", "/api/cars/**", "/api/promotions/**", "/api/owners/**", "/api/reviews/**","/oauth2/**", "/login/**", "/auth/**"};
+    private String[] WHITE_LIST = { "/api/auth/**", "/api/cars/**", "/api/promotions/**", "/api/owners/**",
+            "/api/reviews/**", "/oauth2/**", "/login/**", "/auth/**" };
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final PreFilter preFilter;
     private final UserDetailService userDetailService;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173","https://*.ngrok-free.app")
+                .allowedOriginPatterns("http://localhost:5173", "http://127.0.0.1:5173", "https://*.ngrok-free.app")
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*")
@@ -68,22 +69,24 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
         return httpSecurity.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/payments/webhook/stripe").permitAll()
                         .requestMatchers("/api/bookings/admin/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/reviews/admin/**").permitAll()
                         .requestMatchers("/api/payments/admin/**").permitAll()
                         .requestMatchers("/api/users/admin/**").permitAll()
+                        .requestMatchers("/api/admin/dashboard").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/auth/oauth2/success", true)
-                        .failureUrl("/auth/oauth2/failure")
-                )
-                .authenticationProvider(provider()).addFilterBefore(preFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        .failureUrl("/auth/oauth2/failure"))
+                .authenticationProvider(provider())
+                .addFilterBefore(preFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(
+                        sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .build();
     }
 
@@ -95,7 +98,6 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
         return daoAuthenticationProvider;
     }
 
-
     @Bean
     public AuthenticationManager manager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -104,9 +106,11 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
     @Override
     public void customize(WebSecurity webSecurity) {
         webSecurity.ignoring()
-                .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**");
+                .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js",
+                        "/swagger-ui*/**");
 
     }
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -117,7 +121,7 @@ public class AppConfig implements WebMvcConfigurer , WebSecurityCustomizer {
         return new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .enable(JsonParser.Feature.ALLOW_COMMENTS)       // ← chấp nhận // ...
+                .enable(JsonParser.Feature.ALLOW_COMMENTS) // ← chấp nhận // ...
                 .enable(JsonParser.Feature.ALLOW_TRAILING_COMMA) // ← chấp nhận dấu , thừa
                 .enable(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER);
     }
