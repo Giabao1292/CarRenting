@@ -1,10 +1,11 @@
-package com.example.car_rental.service;
+package com.example.car_rental.service.impl;
 
 import com.example.car_rental.dto.request.AdminRejectCarRequest;
 import com.example.car_rental.dto.response.AdminLicenseDetailResponse;
 import com.example.car_rental.dto.response.AdminLicenseResponse;
 import com.example.car_rental.model.Document;
 import com.example.car_rental.repository.DocumentRepository;
+import com.example.car_rental.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;

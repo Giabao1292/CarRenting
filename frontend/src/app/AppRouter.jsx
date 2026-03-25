@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 import ErrorBoundary from "./ErrorBoundary";
 import { APP_ROUTES } from "./routes";
 import AdminLayout from "../layout/admin/AdminLayout";
@@ -15,6 +16,8 @@ import ProfileLayout from "../layout/profile/ProfileLayout";
 import LandingPage from "../pages/user/LandingPage";
 import NotFoundPage from "../pages/common/NotFoundPage";
 import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
+import OwnerAddCarWizardPage from "../pages/owner/OwnerAddCarWizardPage";
+import OwnerCarManagementDemoPage from "../pages/owner/OwnerCarManagementDemoPage";
 import PaymentPage from "../pages/user/PaymentPage";
 import PaymentManagementPage from "../pages/admin/PaymentManagementPage";
 import OwnerManagementPage from "../pages/admin/OwnerManagementPage";
@@ -58,14 +61,34 @@ const AppRouter = () => {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          <Route element={<OwnerLayout />}>
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["OWNER"]}>
+                <OwnerLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route
               path={APP_ROUTES.OWNER_DASHBOARD}
               element={<OwnerDashboardPage />}
             />
+            <Route
+              path={APP_ROUTES.OWNER_ADD_CAR}
+              element={<OwnerAddCarWizardPage />}
+            />
+            <Route
+              path={APP_ROUTES.OWNER_CAR_MANAGE}
+              element={<OwnerCarManagementDemoPage />}
+            />
           </Route>
 
-          <Route element={<AdminLayout />}>
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route
               path={APP_ROUTES.ADMIN_DASHBOARD}
               element={<AdminDashboardPage />}

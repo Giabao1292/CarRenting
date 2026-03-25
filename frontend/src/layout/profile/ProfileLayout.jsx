@@ -218,29 +218,6 @@ const ProfileLayout = () => {
     normalizedLicenseStatus === "approved";
   const shouldShowLicenseNotes = normalizedLicenseStatus !== "approved";
 
-  const licenseStatusMeta =
-    normalizedLicenseStatus === "approved"
-      ? {
-          label: "APPROVED",
-          className: "profile-license-status profile-license-status-approved",
-        }
-      : normalizedLicenseStatus === "pending"
-        ? {
-            label: "PENDING",
-            className: "profile-license-status profile-license-status-pending",
-          }
-        : normalizedLicenseStatus === "rejected"
-          ? {
-              label: "REJECTED",
-              className:
-                "profile-license-status profile-license-status-rejected",
-            }
-          : {
-              label: "NOT_SUBMITTED",
-              className:
-                "profile-license-status profile-license-status-default",
-            };
-
   const activeSection = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
@@ -259,10 +236,37 @@ const ProfileLayout = () => {
 
   const displayAvatar = avatarUrl || contextAvatar || profileData.user.avatar;
 
-  const profileUser = useMemo(
-    () => ({ ...profileData.user, avatar: displayAvatar }),
-    [displayAvatar],
-  );
+  const profileUser = useMemo(() => {
+    const resolvedName = String(
+      licenseProfile?.fullName ||
+        authUser?.fullName ||
+        authUser?.name ||
+        profileData.user.name ||
+        "Người dùng",
+    ).trim();
+    const resolvedEmail = String(
+      licenseProfile?.email || authUser?.email || profileData.user.email || "",
+    ).trim();
+    const resolvedPhone = String(licenseProfile?.phone || "").trim();
+    const resolvedAddress = String(licenseProfile?.address || "").trim();
+
+    return {
+      ...profileData.user,
+      name: resolvedName,
+      fullName: resolvedName,
+      email: resolvedEmail,
+      phone: resolvedPhone,
+      address: resolvedAddress,
+      birthDate: formatDateLabel(licenseProfile?.dob),
+      gender: String(authUser?.gender || "").trim() || "--",
+      joinedDate: String(authUser?.createdAt || "").trim()
+        ? formatDateLabel(authUser.createdAt)
+        : "--/--/----",
+      phoneVerified: Boolean(resolvedPhone),
+      emailVerified: Boolean(resolvedEmail),
+      avatar: displayAvatar,
+    };
+  }, [authUser, displayAvatar, licenseProfile]);
 
   const currentTrips = useMemo(
     () =>
@@ -895,13 +899,13 @@ const ProfileLayout = () => {
                           <div className="d-flex justify-content-between align-items-center mb-3">
                             <span className="text-muted small">Ngày sinh</span>
                             <span className="fw-semibold">
-                              {profileData.user.birthDate}
+                              {profileUser.birthDate}
                             </span>
                           </div>
                           <div className="d-flex justify-content-between align-items-center">
                             <span className="text-muted small">Giới tính</span>
                             <span className="fw-semibold">
-                              {profileData.user.gender}
+                              {profileUser.gender}
                             </span>
                           </div>
                         </div>
@@ -914,18 +918,9 @@ const ProfileLayout = () => {
                                 verified={profileUser.phoneVerified}
                               />
                             </div>
-                            <Button
-                              variant="link"
-                              className="p-0 text-dark text-decoration-none d-inline-flex align-items-center gap-1"
-                            >
-                              Thêm số điện thoại
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 16 }}
-                              >
-                                edit
-                              </span>
-                            </Button>
+                            <div className="fw-semibold">
+                              {profileUser.phone || "Chưa cập nhật"}
+                            </div>
                           </div>
 
                           <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
@@ -942,18 +937,9 @@ const ProfileLayout = () => {
 
                           <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                             <div className="small text-muted">Địa chỉ</div>
-                            <Button
-                              variant="link"
-                              className="p-0 text-dark text-decoration-none d-inline-flex align-items-center gap-1"
-                            >
-                              Thêm địa chỉ
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 16 }}
-                              >
-                                edit
-                              </span>
-                            </Button>
+                            <div className="fw-semibold">
+                              {profileUser.address || "Chưa cập nhật"}
+                            </div>
                           </div>
                         </div>
                       </Col>
